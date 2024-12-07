@@ -17,7 +17,7 @@ wf.Config.feature_flags = ["workflows"]
 
 initial_state = wf.init_state({
     "my_app": {
-        "title": "SEO Content Engine"
+        "title": "Hello Writer"
     },
     "_my_private_element": 1337,
     "message": None,
