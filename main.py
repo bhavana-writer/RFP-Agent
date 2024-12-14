@@ -1,7 +1,6 @@
 import writer as wf
 from app.services.google_trends_service import GoogleTrendsService
 from writerai import Writer
-import logging
 import json
 from dotenv import load_dotenv
 import os
@@ -38,8 +37,7 @@ print("Hello world!")
 #Workflow configuration
 wf.Config.feature_flags = ["workflows"]
 
-base_url = "https://vos9w20n.ai.writer.build"
-
+base_url = settings.BASE_URL
 writer_abm_app_id = "3d099a02-7089-4ef2-9189-168e2af29edc"
 writer_sales_summary_app_id = "10531b49-35a9-4dc0-8517-a67d4a08a19d"
 transcript_graph_id="6940e9ca-903f-46cf-8129-26f4812d0c43"

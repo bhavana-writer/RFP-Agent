@@ -39,11 +39,11 @@ class Settings(BaseSettings):
     # Base URL for the application (Optional, set dynamically)
     BASE_URL: Optional[str] = None  # Excluded from validation during initialization
 
-    def set_base_url(self, protocol: str = "http", host: str = "localhost", port: int = 8000):
+    def set_base_url(self, protocol: str = "http", host: str = "localhost", port: int = 8080):
         """
         Dynamically set the BASE_URL based on the protocol, host, and port.
         """
-        self.BASE_URL = f"{protocol}://{host}:{port}"
+        self.BASE_URL = f"{protocol}://{host}:{port}/run"
 
     class Config:
         env_file = ".env"
@@ -54,5 +54,5 @@ settings = Settings()
 settings.set_base_url(
     protocol=os.getenv("PROTOCOL", "http"),
     host=os.getenv("HOST", "localhost"),
-    port=int(os.getenv("PORT", 8000))
+    port=int(os.getenv("PORT", 8080))
 )

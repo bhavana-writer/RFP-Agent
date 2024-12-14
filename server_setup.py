@@ -6,6 +6,7 @@ from app.config import settings
 import logging
 from dotenv import load_dotenv
 
+
 # Load environment variables
 load_dotenv()
 
