@@ -1,9 +1,13 @@
 import sys
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 import writer.serve
 from app.config import settings
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,3 +38,15 @@ asgi_app.include_router(api_router, prefix="/api/v1")
 @asgi_app.get("/healthcheck")
 async def health_check():
     return {"status": "ok"}
+
+# Initialize Base URL during startup
+@asgi_app.middleware("http")
+async def set_base_url_on_request(request: Request, call_next):
+    """
+    Middleware to set the base URL dynamically on every incoming request.
+    """
+    if not settings.BASE_URL:
+        base_url = str(request.url).split(request.url.path)[0]
+        settings.BASE_URL = base_url
+    response = await call_next(request)
+    return response
