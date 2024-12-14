@@ -27,7 +27,7 @@ app_hub = FastAPI(lifespan=writer.serve.lifespan)
 
 # Create two ASGI apps for the same app_path but with different modes
 run_app = writer.serve.get_asgi_app(".", "run")
-edit_app = writer.serve.get_asgi_app(".", "edit")
+edit_app = writer.serve.get_asgi_app(".", "edit", enable_remote_edit=True, enable_server_setup=True)
 
 # Mount the apps on different sub-paths
 app_hub.mount("/run", run_app)
