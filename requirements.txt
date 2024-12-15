@@ -132,7 +132,7 @@ watchdog==3.0.0
 weasyprint==63.0
 webencodings==0.5.1
 websockets==12.0
-writer==0.8.2
+writer==0.8.3rc2
 writer-sdk==1.5.0
 xattr==1.1.0
 yfinance==0.2.49
