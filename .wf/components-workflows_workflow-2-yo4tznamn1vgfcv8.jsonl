@@ -1,2 +1,0 @@
-{"id": "yo4tznamn1vgfcv8", "type": "workflows_workflow", "content": {"key": "share to slack"}, "handlers": {}, "isCodeManaged": false, "parentId": "workflows_root", "position": 2}
-{"id": "6awqrrvxhxcqi88e", "type": "workflows_httprequest", "content": {"method": "POST"}, "handlers": {}, "isCodeManaged": false, "parentId": "yo4tznamn1vgfcv8", "position": 0, "x": 61, "y": 126}

@@ -1,5 +1,6 @@
 {"id": "a2k8jhgxgebk4sb7", "type": "page", "content": {"key": "account-summary-generation"}, "handlers": {}, "isCodeManaged": false, "parentId": "root", "position": 0}
-{"id": "xbsv2glr2wt25o13", "type": "header", "content": {"text": "Account ABM App"}, "handlers": {}, "isCodeManaged": false, "parentId": "a2k8jhgxgebk4sb7", "position": 0}
+{"id": "xbsv2glr2wt25o13", "type": "header", "content": {"text": "Account Planning App"}, "handlers": {}, "isCodeManaged": false, "parentId": "a2k8jhgxgebk4sb7", "position": 0}
+{"id": "wnas4la3ewc53ppm", "type": "link", "content": {"text": "Chat with Salesforce Data", "url": ""}, "handlers": {}, "parentId": "xbsv2glr2wt25o13", "position": 0}
 {"id": "zgm34u5p7r0qvs6c", "type": "columns", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "a2k8jhgxgebk4sb7", "position": 1}
 {"id": "8zvka2u35v8qtdc4", "type": "column", "content": {"title": "Account List", "width": "1"}, "handlers": {}, "isCodeManaged": false, "parentId": "zgm34u5p7r0qvs6c", "position": 0}
 {"id": "3asjns7srnp0lz1c", "type": "selectinput", "content": {"label": "Input Label", "options": "@{accounts}"}, "handlers": {"wf-option-change": "handle_selection"}, "isCodeManaged": false, "parentId": "8zvka2u35v8qtdc4", "position": 0}
