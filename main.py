@@ -24,7 +24,10 @@ logger = logging.getLogger(__name__)
 load_dotenv(override=True)
 
 # Base URL for the application
-print(f"Base URL initialized: {settings.BASE_URL}")
+# Base URL for the application (now dynamically set)
+base_url = settings.BASE_URL
+print(f"Base URL initialized: {base_url}")
+
 
 
 # This is a placeholder to get you started or refresh your memory.
@@ -38,6 +41,7 @@ print("Hello world!")
 wf.Config.feature_flags = ["workflows", "custom_block_icons"]
 
 base_url = settings.BASE_URL
+print(f"Base URL initialized 2: {base_url}")
 writer_abm_app_id = "3d099a02-7089-4ef2-9189-168e2af29edc"
 writer_sales_summary_app_id = "10531b49-35a9-4dc0-8517-a67d4a08a19d"
 transcript_graph_id="6940e9ca-903f-46cf-8129-26f4812d0c43"

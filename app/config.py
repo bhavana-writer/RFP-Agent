@@ -4,8 +4,12 @@ from pydantic import Field
 from typing import Optional
 import os
 
-# Load environment variables
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+# Determine environment and load the appropriate .env file
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")  # Default to "local"
+if ENVIRONMENT == "local":
+    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env.local"), override=True)
+else:
+    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"), override=True)
 
 class Settings(BaseSettings):
     # Required fields for Supabase
@@ -33,26 +37,32 @@ class Settings(BaseSettings):
     SALESFORCE_PASSWORD: str = Field(..., env="SALESFORCE_PASSWORD")
     SALESFORCE_SECURITY_TOKEN: str = Field(..., env="SALESFORCE_SECURITY_TOKEN")
 
-    #Tavily API credentials
+    # Tavily API credentials
     TAVILY_API_KEY: str = Field(..., env="TAVILY_API_KEY")
 
     # Base URL for the application (Optional, set dynamically)
-    BASE_URL: Optional[str] = None  # Excluded from validation during initialization
+    BASE_URL: Optional[str] = None
 
-    def set_base_url(self, protocol: str = "http", host: str = "localhost", port: int = 8080):
+    def set_base_url(self):
         """
-        Dynamically set the BASE_URL based on the protocol, host, and port.
+        Dynamically set the BASE_URL based on protocol, host, and port.
         """
-        self.BASE_URL = f"{protocol}://{host}:{port}/run"
+        protocol = os.getenv("PROTOCOL", "http")
+        host = os.getenv("HOST", "localhost")
+        port = int(os.getenv("PORT", 8080))
+
+        # Omit port for standard HTTP/HTTPS
+        if (protocol == "http" and port == 80) or (protocol == "https" and port == 443):
+            self.BASE_URL = f"{protocol}://{host}/run"
+        else:
+            self.BASE_URL = f"{protocol}://{host}:{port}/run"
+
+        print(f"Base URL set to: {self.BASE_URL}")
 
     class Config:
-        env_file = ".env"
+        env_file = ".env"  # Default fallback
         extra = "ignore"  # Ignore unknown fields
 
-# Initialize settings and dynamically set BASE_URL
+# Initialize settings
 settings = Settings()
-settings.set_base_url(
-    protocol=os.getenv("PROTOCOL", "http"),
-    host=os.getenv("HOST", "localhost"),
-    port=int(os.getenv("PORT", 8080))
-)
+settings.set_base_url()
