@@ -35,7 +35,7 @@ print(f"Base URL initialized: {settings.BASE_URL}")
 print("Hello world!")
 
 #Workflow configuration
-wf.Config.feature_flags = ["workflows"]
+wf.Config.feature_flags = ["workflows", "custom_block_icons"]
 
 base_url = settings.BASE_URL
 writer_abm_app_id = "3d099a02-7089-4ef2-9189-168e2af29edc"
@@ -157,6 +157,137 @@ def send_multiple_canvas_urls():
             logger.error(f"Failed to send canvas URL: {canvas_url}, Error: {response['error']}")
         else:
             logger.info(f"Successfully sent canvas URL: {canvas_url}")
+
+def search_and_fetch_account_data(search_term):
+    """
+    Search for a Salesforce account using a search term and fetch detailed account data.
+    """
+    logger.info("Handler: search_and_fetch_account_data | Start")
+    salesforce_service = SalesforceService()
+    try:
+        # Search for accounts
+        logger.info(f"Searching for accounts with term: '{search_term}'")
+        accounts = salesforce_service.search_accounts(search_term)
+        if not accounts:
+            logger.warning(f"No accounts found for search term: '{search_term}'")
+            return None
+        
+        # Display matching accounts
+        logger.info(f"Found {len(accounts)} account(s):")
+        for idx, account in enumerate(accounts, start=1):
+            logger.info(f"{idx}. Account Name: {account['Name']} | ID: {account['Id']}")
+
+        # Fetch details for the first account
+        selected_account_id = accounts[0]['Id']
+        logger.info(f"Fetching data for Account ID: {selected_account_id}")
+        account_data = salesforce_service.get_account_data(selected_account_id)
+        
+        if account_data:
+            logger.info("Successfully fetched account data.")
+            return account_data
+        else:
+            logger.warning(f"Failed to fetch data for Account ID: {selected_account_id}")
+            return None
+    except Exception as e:
+        logger.error(f"Error in search_and_fetch_account_data: {e}")
+        return None
+    finally:
+        logger.info("Handler: search_and_fetch_account_data | End")
+def search_account_and_create_task(state, search_term, task_subject, task_status="Not Started", task_date=None):
+    """
+    Search for an account by name, retrieve the ID, and create a task for it.
+
+    :param state: Application state.
+    :param search_term: Search term for the account name.
+    :param task_subject: Subject of the task to be created.
+    :param task_status: Status of the task.
+    :param task_date: Task activity date in YYYY-MM-DD format.
+    """
+    print("Handler: search_account_and_create_task | Start")
+
+    try:
+        # Initialize SalesforceService
+        salesforce_service = SalesforceService()
+
+        # Search for accounts matching the search term
+        accounts = salesforce_service.search_accounts(search_term)
+        if not accounts:
+            print(f"No accounts found for search term: {search_term}")
+            return
+
+        # Use the first matching account
+        account = accounts[0]
+        account_id = account["Id"]
+        account_name = account["Name"]
+        print(f"Found Account: {account_name} (ID: {account_id})")
+
+        # Create a task for the account
+        result = salesforce_service.create_task_for_account(
+            account_id=account_id,
+            subject=task_subject,
+            status=task_status,
+            activity_date=task_date
+        )
+
+        if result:
+            print(f"Task created successfully for account {account_name}: {result}")
+            state["task_creation_status"] = f"Task created for account '{account_name}'"
+        else:
+            print(f"Failed to create task for account '{account_name}'")
+            state["task_creation_status"] = f"Failed to create task for account '{account_name}'"
+
+    except Exception as e:
+        print(f"Error in search_account_and_create_task: {e}")
+        state["task_creation_status"] = f"Error: {str(e)}"
+
+    print("Handler: search_account_and_create_task | End")
+
+def search_account_and_add_note(state, search_term, note_title, note_body):
+    """
+    Search for an account by name, retrieve the ID, and add a note to it.
+
+    :param state: Application state.
+    :param search_term: Search term for the account name.
+    :param note_title: Title of the note.
+    :param note_body: Content of the note.
+    """
+    print("Handler: search_account_and_add_note | Start")
+
+    try:
+        # Initialize SalesforceService
+        salesforce_service = SalesforceService()
+
+        # Search for accounts matching the search term
+        accounts = salesforce_service.search_accounts(search_term)
+        if not accounts:
+            print(f"No accounts found for search term: {search_term}")
+            return
+
+        # Use the first matching account
+        account = accounts[0]
+        account_id = account["Id"]
+        account_name = account["Name"]
+        print(f"Found Account: {account_name} (ID: {account_id})")
+
+        # Add a note to the account
+        result = salesforce_service.add_note_to_account(
+            account_id=account_id,
+            title=note_title,
+            body=note_body
+        )
+
+        if result:
+            print(f"Note added successfully for account {account_name}: {result}")
+            state["note_creation_status"] = f"Note added to account '{account_name}'"
+        else:
+            print(f"Failed to add note for account '{account_name}'")
+            state["note_creation_status"] = f"Failed to add note to account '{account_name}'"
+
+    except Exception as e:
+        print(f"Error in search_account_and_add_note: {e}")
+        state["note_creation_status"] = f"Error: {str(e)}"
+
+    print("Handler: search_account_and_add_note | End")
 
 # Preload accounts during initialization
 preload_accounts(state)

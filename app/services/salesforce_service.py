@@ -44,6 +44,32 @@ class SalesforceService:
             logger.error(f"Error searching for accounts: {e}")
             return None
 
+    def create_task_for_account(self, account_id, subject, status="Not Started", activity_date=None):
+        """
+        Create a task for a specific Salesforce account.
+
+        :param account_id: Salesforce Account ID.
+        :param subject: Subject of the task.
+        :param status: Status of the task (default: "Not Started").
+        :param activity_date: Date of the task activity (YYYY-MM-DD, optional).
+        :return: Created task details or None if an error occurs.
+        """
+        try:
+            task_data = {
+                "Subject": subject,
+                "Status": status,
+                "WhatId": account_id,  # Link the task to the account
+            }
+            if activity_date:
+                task_data["ActivityDate"] = activity_date
+
+            # Create task
+            result = self.sf.Task.create(task_data)
+            logger.info(f"Task created successfully: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Error creating task for account {account_id}: {e}")
+            return None
 
 
     def get_account_data(self, account_id):
@@ -150,4 +176,27 @@ class SalesforceService:
             return tasks
         except Exception as e:
             logger.error(f"Error fetching tasks for account ID {account_id}: {e}")
+            return None
+    def add_note_to_account(self, account_id, title, body):
+        """
+        Add a Note to a specific Salesforce account.
+
+        :param account_id: Salesforce Account ID.
+        :param title: Title of the note.
+        :param body: Content/body of the note.
+        :return: Created note details or None if an error occurs.
+        """
+        try:
+            note_data = {
+                "Title": title,
+                "Body": body,
+                "ParentId": account_id  # Link the note to the account
+            }
+
+            # Create Note
+            result = self.sf.Note.create(note_data)
+            logger.info(f"Note added successfully: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Error adding note to account {account_id}: {e}")
             return None

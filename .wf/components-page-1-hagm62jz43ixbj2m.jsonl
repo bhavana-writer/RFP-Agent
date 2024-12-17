@@ -1,6 +1,5 @@
-{"id": "hagm62jz43ixbj2m", "type": "page", "content": {"key": "Chat with Salesforce"}, "handlers": {}, "parentId": "root", "position": 1}
-{"id": "umzw8c986krgmuhi", "type": "header", "content": {"text": "Header Text"}, "handlers": {}, "parentId": "hagm62jz43ixbj2m", "position": 0}
-{"id": "0ww2w0pkco53ytjm", "type": "columns", "content": {}, "handlers": {}, "parentId": "hagm62jz43ixbj2m", "position": 1}
-{"id": "whmb2ehwcewo0985", "type": "column", "content": {"title": "Chat with Salesforce Data", "width": "3"}, "handlers": {}, "parentId": "0ww2w0pkco53ytjm", "position": 0}
-{"id": "xisemc4hwqtvi0va", "type": "chatbot", "content": {"conversation": "@{payload}", "enableFileUpload": "single", "useMarkdown": "yes"}, "handlers": {}, "parentId": "whmb2ehwcewo0985", "position": 0}
-{"id": "vh7kkra2nfn3tnit", "type": "column", "content": {"title": "Reference", "width": "1"}, "handlers": {}, "parentId": "0ww2w0pkco53ytjm", "position": 1}
+{"id": "hagm62jz43ixbj2m", "type": "page", "content": {"key": "Chat with Salesforce"}, "handlers": {}, "isCodeManaged": false, "parentId": "root", "position": 1}
+{"id": "umzw8c986krgmuhi", "type": "header", "content": {"text": "Ask Writer"}, "handlers": {}, "isCodeManaged": false, "parentId": "hagm62jz43ixbj2m", "position": 0}
+{"id": "0ww2w0pkco53ytjm", "type": "columns", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "hagm62jz43ixbj2m", "position": 1}
+{"id": "whmb2ehwcewo0985", "type": "column", "content": {"title": "Chat with Salesforce Data", "width": "3"}, "handlers": {}, "isCodeManaged": false, "parentId": "0ww2w0pkco53ytjm", "position": 0}
+{"id": "xisemc4hwqtvi0va", "type": "chatbot", "content": {"conversation": "@{convo}", "enableFileUpload": "single", "useMarkdown": "yes"}, "handlers": {"wf-chatbot-message": "$runWorkflow_Chat with Salesforce"}, "isCodeManaged": false, "parentId": "whmb2ehwcewo0985", "position": 0}
