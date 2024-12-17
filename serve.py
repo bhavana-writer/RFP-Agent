@@ -174,7 +174,7 @@ if __name__ == "__main__":
     uvicorn.run(
         app_hub,
         host="0.0.0.0",
-        port=8080,  # Specify your desired port
+        port=int(os.getenv("PORT", 8080)),
         log_level="warning",
         ws_max_size=writer.serve.MAX_WEBSOCKET_MESSAGE_SIZE
     )

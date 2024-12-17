@@ -174,7 +174,7 @@ def search_and_fetch_account_data(search_term):
         accounts = salesforce_service.search_accounts(search_term)
         if not accounts:
             logger.warning(f"No accounts found for search term: '{search_term}'")
-            return None
+            return "No accounts found"
         
         # Display matching accounts
         logger.info(f"Found {len(accounts)} account(s):")
@@ -191,10 +191,10 @@ def search_and_fetch_account_data(search_term):
             return account_data
         else:
             logger.warning(f"Failed to fetch data for Account ID: {selected_account_id}")
-            return None
+            return "Failed to fetch account data"
     except Exception as e:
         logger.error(f"Error in search_and_fetch_account_data: {e}")
-        return None
+        return f"Error: {str(e)}"
     finally:
         logger.info("Handler: search_and_fetch_account_data | End")
 def search_account_and_create_task(state, search_term, task_subject, task_status="Not Started", task_date=None):
