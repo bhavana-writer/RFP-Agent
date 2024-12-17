@@ -57,7 +57,7 @@ state = wf.init_state({
     "base_url": base_url,  # Set Base URL in the state
     "account_name": "",  # Name of the selected account
     "account_api_url": "",  # API URL for fetching account data
-    "account_search_api_url": f"{base_url}/",  # API URL for searching news
+    "account_search_api_url": "",  # API URL for searching news
     "sf_account_data": "",  # Data for the selected account
     "kg_api_url": f"{base_url}/kg-question",  # URL for Knowledge Graph API
     "create_canvas_url": f"{base_url}/create-account-briefing",  # URL for creating a Salesforce Canvas app
