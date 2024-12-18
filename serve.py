@@ -171,10 +171,14 @@ async def home_page():
 
 # Start the Uvicorn server
 if __name__ == "__main__":
+    # Dynamically select port based on environment
+    port = int(os.getenv("PORT", 8080))
+    host = os.getenv("HOST", "0.0.0.0")  # Use "localhost" for local development if needed
+    
     uvicorn.run(
         app_hub,
-        host="0.0.0.0",
-        port=int(os.getenv("PORT", 8080)),
+        host=host,
+        port=port,
         log_level="warning",
         ws_max_size=writer.serve.MAX_WEBSOCKET_MESSAGE_SIZE
     )
