@@ -51,13 +51,20 @@ class Settings(BaseSettings):
         host = os.getenv("HOST", "localhost")
         port = int(os.getenv("PORT", 8080))
 
-        # Omit port for standard HTTP/HTTPS
-        if (protocol == "http" and port == 80) or (protocol == "https" and port == 443):
+        # Check if we're in a production environment
+        environment = os.getenv("ENVIRONMENT", "local")
+
+        # For production with HTTPS, omit the port
+        if environment == "production" and protocol == "https":
             self.BASE_URL = f"{protocol}://{host}/run"
-        else:
+        # For local or other environments, include the port
+        elif (protocol == "http" and port != 80) or (protocol == "https" and port != 443):
             self.BASE_URL = f"{protocol}://{host}:{port}/run"
+        else:
+            self.BASE_URL = f"{protocol}://{host}/run"
 
         print(f"Base URL set to: {self.BASE_URL}")
+
 
     class Config:
         env_file = ".env"  # Default fallback
