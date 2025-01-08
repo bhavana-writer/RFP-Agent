@@ -200,3 +200,117 @@ class SalesforceService:
         except Exception as e:
             logger.error(f"Error adding note to account {account_id}: {e}")
             return None
+
+    def total_pipeline_value(self):
+        """
+        Calculate the total pipeline value (sum of Amount for open opportunities).
+        
+        :return: Total pipeline value as a float
+        """
+        query = "SELECT SUM(Amount) FROM Opportunity WHERE IsClosed = FALSE"
+        result = self.sf.query(query)
+        total_value = result["records"][0].get("expr0", 0)
+        return total_value
+
+    def weighted_pipeline_value(self):
+        """
+        Calculate the weighted pipeline value (Amount * Probability for open opportunities).
+        
+        :return: Weighted pipeline value as a float
+        """
+        query = "SELECT SUM(Amount * Probability) FROM Opportunity WHERE IsClosed = FALSE"
+        result = self.sf.query(query)
+        weighted_value = result["records"][0].get("expr0", 0)
+        return weighted_value
+
+    def stage_wise_pipeline_breakdown(self):
+        """
+        Get the pipeline value grouped by stage.
+        
+        :return: Dictionary with stage names as keys and pipeline values as values
+        """
+        query = "SELECT StageName, SUM(Amount) FROM Opportunity WHERE IsClosed = FALSE GROUP BY StageName"
+        result = self.sf.query(query)
+        breakdown = {record["StageName"]: record["expr0"] for record in result["records"]}
+        return breakdown
+
+    def pipeline_velocity(self, average_deal_size, win_rate, sales_cycle_length):
+        """
+        Calculate the pipeline velocity.
+        
+        :param average_deal_size: Average size of deals in the pipeline
+        :param win_rate: Win rate as a decimal (e.g., 0.25 for 25%)
+        :param sales_cycle_length: Average sales cycle length in days
+        :return: Pipeline velocity as a float
+        """
+        velocity = (len(self.sf.query("SELECT Id FROM Opportunity WHERE IsClosed = FALSE")["records"]) *
+                    average_deal_size * win_rate) / sales_cycle_length
+        return velocity
+
+    def win_rate(self):
+        """
+        Calculate the win rate (percentage of closed-won opportunities).
+        
+        :return: Win rate as a float
+        """
+        closed_won_query = "SELECT COUNT(Id) FROM Opportunity WHERE IsClosed = TRUE AND IsWon = TRUE"
+        total_query = "SELECT COUNT(Id) FROM Opportunity"
+        closed_won_count = self.sf.query(closed_won_query)["records"][0].get("expr0", 0)
+        total_count = self.sf.query(total_query)["records"][0].get("expr0", 1)
+        return (closed_won_count / total_count) * 100
+
+    def lost_opportunity_analysis(self):
+        """
+        Analyze lost opportunities grouped by CloseReason.
+        
+        :return: Dictionary with CloseReasons as keys and counts as values
+        """
+        query = "SELECT CloseReason, COUNT(Id) FROM Opportunity WHERE IsClosed = TRUE AND IsWon = FALSE GROUP BY CloseReason"
+        result = self.sf.query(query)
+        analysis = {record["CloseReason"]: record["expr0"] for record in result["records"]}
+        return analysis
+
+    def sales_cycle_length(self):
+        """
+        Calculate the average sales cycle length (days between CreatedDate and CloseDate).
+        
+        :return: Average sales cycle length in days as a float
+        """
+        query = "SELECT AVG(CloseDate - CreatedDate) FROM Opportunity WHERE IsClosed = TRUE AND IsWon = TRUE"
+        result = self.sf.query(query)
+        avg_cycle_length = result["records"][0].get("expr0", 0)
+        return avg_cycle_length
+
+    def forecast_by_close_date(self):
+        """
+        Forecast revenue grouped by CloseDate for open opportunities.
+        
+        :return: Dictionary with CloseDates as keys and forecasted revenue as values
+        """
+        query = "SELECT CloseDate, SUM(Amount) FROM Opportunity WHERE IsClosed = FALSE GROUP BY CloseDate"
+        result = self.sf.query(query)
+        forecast = {record["CloseDate"]: record["expr0"] for record in result["records"]}
+        return forecast
+
+    def pipeline_gap_analysis(self, target_revenue):
+        """
+        Perform a pipeline gap analysis (difference between target and total pipeline value).
+        
+        :param target_revenue: Target revenue as a float
+        :return: Pipeline gap as a float
+        """
+        total_pipeline = self.total_pipeline_value()
+        gap = target_revenue - total_pipeline
+        return gap
+
+    def conversion_rates_by_stage(self):
+        """
+        Calculate conversion rates by stage (opportunities moving to the next stage).
+        
+        :return: Dictionary with stage names and conversion rates
+        """
+        query = "SELECT StageName, COUNT(Id) FROM Opportunity WHERE IsClosed = FALSE GROUP BY StageName"
+        result = self.sf.query(query)
+        total_count = sum(record["expr0"] for record in result["records"])
+        conversion_rates = {record["StageName"]: (record["expr0"] / total_count) * 100 for record in result["records"]}
+        return conversion_rates
