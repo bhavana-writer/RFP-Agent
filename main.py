@@ -296,3 +296,6 @@ def search_account_and_add_note(state, search_term, note_title, note_body):
 # Preload accounts during initialization
 preload_accounts(state)
 print("Preloaded accounts:", state["accounts"])
+
+print(f"Current working directory: {os.getcwd()}")
+print(f"Environment files in current directory: {[f for f in os.listdir() if '.env' in f]}")

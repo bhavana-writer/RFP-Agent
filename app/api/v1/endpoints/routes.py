@@ -1,5 +1,14 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import slack_endpoints, airtable_endpoints, google_trends_endpoints, salesforce_endpoints, writer_endpoints, base_url_endpoints, tavily_endpoints
+from app.api.v1.endpoints import (
+    slack_endpoints,
+    airtable_endpoints,
+    google_trends_endpoints,
+    salesforce_endpoints,
+    writer_endpoints,
+    base_url_endpoints,
+    tavily_endpoints,
+    wordpress_endpoints
+)
 
 api_router = APIRouter()
 
@@ -11,6 +20,9 @@ api_router.include_router(salesforce_endpoints.router, prefix="/salesforce", tag
 api_router.include_router(writer_endpoints.router, prefix="/writer", tags=["writer"])
 api_router.include_router(base_url_endpoints.router, prefix="/base-url", tags=["base_url"])
 api_router.include_router(tavily_endpoints.router, prefix="/tavily", tags=["Tavily"])
+
+# Add WordPress endpoints
+api_router.include_router(wordpress_endpoints.router, prefix="/wordpress", tags=["wordpress"])
 
 
 

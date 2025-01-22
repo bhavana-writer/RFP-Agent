@@ -131,29 +131,28 @@ class WriterService:
             # Extend with actual tool logic
         }
 
-    def call_writer_text_gen_app(self, application_id: str, inputs: List[TextGenInput]) -> Dict:
+    def call_writer_text_gen_app(self, application_id: str, inputs: List[dict], stream: bool = False) -> Dict:
         """
         Call the Writer text generation application to generate content.
-
-        :param application_id: The ID of the Writer application to use.
-        :param inputs: A list of dictionaries with `id` and `value`.
-        :return: A dictionary containing the title and suggestion.
+        
+        :param application_id: The ID of the Writer application to use
+        :param inputs: List of dictionaries containing id and value pairs
+        :param stream: Whether to stream the response
+        :return: Dictionary containing the response
         """
         try:
-            # Convert TextGenInput models to dictionaries
-            input_dicts = [input_item.dict() for input_item in inputs]
-
-            # Call Writer API
+            # Call Writer API exactly as shown in the example
             response = self.client.applications.generate_content(
                 application_id=application_id,
-                inputs=input_dicts
+                inputs=inputs,
+                stream=stream
             )
 
-            # Return structured output
+            # Return just the suggestion as shown in the example
             return {
-                "title": response.title,
-                "suggestion": response.suggestion,
+                "suggestion": response.suggestion
             }
+            
         except Exception as e:
             return {"error": str(e)}
     

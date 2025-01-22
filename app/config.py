@@ -1,15 +1,34 @@
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, HttpUrl
 from typing import Optional
 import os
 
-# Determine environment and load the appropriate .env file
+# First, define the environment
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")  # Default to "local"
+
+# Now we can use ENVIRONMENT in our debug prints
+print(f"Current working directory: {os.getcwd()}")
+print(f"Loading environment: {ENVIRONMENT}")
+print(f"Looking for .env file in: {os.path.dirname(__file__)}")
+
+# Then load the appropriate .env file
+if ENVIRONMENT == "local":
+    env_path = os.path.join(os.path.dirname(__file__), ".env.local")
+else:
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+
+print(f"Attempting to load .env from: {env_path}")
+print(f"File exists: {os.path.exists(env_path)}")
+
+# Load the environment file
 if ENVIRONMENT == "local":
     load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env.local"), override=True)
 else:
     load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"), override=True)
+
+# Rest of the debug prints
+print(f"Loading .env file from: {os.path.join(os.path.dirname(__file__), '.env')}")
 
 class Settings(BaseSettings):
     # Required fields for Supabase
@@ -19,6 +38,7 @@ class Settings(BaseSettings):
     # Required fields for Slack
     SLACK_BOT_TOKEN: str = Field(..., env="SLACK_BOT_TOKEN")
     SLACK_SIGNING_SECRET: str = Field(..., env="SLACK_SIGNING_SECRET")
+    SLACK_USER_TOKEN: str = Field(..., env="SLACK_USER_TOKEN")
     
     # Required fields for Airtable
     AIRTABLE_API_KEY: str = Field(..., env="AIRTABLE_API_KEY")
@@ -42,6 +62,25 @@ class Settings(BaseSettings):
 
     # Base URL for the application (Optional, set dynamically)
     BASE_URL: Optional[str] = None
+
+    # WordPress API Configuration with validation
+    WORDPRESS_API_URL: HttpUrl = Field(
+        ...,
+        env="WORDPRESS_API_URL",
+        description="WordPress REST API endpoint URL"
+    )
+    WORDPRESS_USERNAME: str = Field(
+        ...,
+        env="WORDPRESS_USERNAME",
+        min_length=1,
+        description="WordPress username for authentication"
+    )
+    WORDPRESS_APP_PASSWORD: str = Field(
+        ...,
+        env="WORDPRESS_APP_PASSWORD",
+        min_length=8,
+        description="WordPress application password for authentication"
+    )
 
     def set_base_url(self):
         """
@@ -73,3 +112,5 @@ class Settings(BaseSettings):
 # Initialize settings
 settings = Settings()
 settings.set_base_url()
+print("Settings loaded successfully")
+

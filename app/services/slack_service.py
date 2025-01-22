@@ -1,5 +1,6 @@
 import os
 import requests
+import asyncio
 from slack_bolt import App
 from slack_bolt.adapter.fastapi import SlackRequestHandler
 from app.config import settings
@@ -18,6 +19,16 @@ import json
 import asyncio
 import time
 from typing import Literal
+from app.services.wordpress_service import WordPressService
+from threading import Thread
+import markdown
+import textwrap
+from simple_salesforce import Salesforce
+from datetime import datetime
+from slack_sdk.errors import SlackApiError
+
+
+
 
 # Initialize logger
 logging.basicConfig(
@@ -42,7 +53,14 @@ sf_service = SalesforceService()
 # Initialize Writer Client
 writer_client = Writer(api_key=settings.WRITER_API_KEY)
 
+wordpress_service = WordPressService()
 
+# Initialize Salesforce connection
+sf = Salesforce(
+    username=os.environ.get("SALESFORCE_USERNAME"),
+    password=os.environ.get("SALESFORCE_PASSWORD"),
+    security_token=os.environ.get("SALESFORCE_SECURITY_TOKEN")
+)
 
 # Tool to search accounts
 @tool
@@ -213,6 +231,39 @@ checkpointer = MemorySaver()
 # Compile the graph into a runnable
 app = workflow.compile(checkpointer=checkpointer)
 
+#handle message that iincldes a file share - Primt the output of the file
+@slack_app.event("message")
+def handle_file_share_event(body, logger):
+    """
+    Handles the 'file_share' subtype of the 'message' event from Slack.
+    """
+    event = body.get("event", {})
+    subtype = event.get("subtype")
+
+    # Check if the message subtype is 'file_share'
+    if subtype == "file_share":
+        logger.info("Handling file_share event")
+        
+        # Extract file information
+        files = event.get("files", [])
+        user_id = event.get("user")
+        channel_id = event.get("channel")
+
+        # Print out the extracted data
+        for file in files:
+            file_id = file.get("id")
+            file_name = file.get("name")
+            file_url = file.get("url_private_download")
+            
+            print(f"File ID: {file_id}")
+            print(f"File Name: {file_name}")
+            print(f"File URL: {file_url}")
+
+        print(f"User ID: {user_id}")
+        print(f"Channel ID: {channel_id}")
+
+    else:
+        logger.info("Received a non-file_share message event")
 
 
 @slack_app.message("")
@@ -346,6 +397,245 @@ def create_canvas(title: str, content: str):
         logger.error(f"Error creating canvas: {response.text}")
     return response.json()
 
+@slack_app.shortcut("generate_blog_article")
+def handle_generate_blog_article_shortcut(ack, body, client):
+    """
+    Handles the 'generate_blog_article' shortcut and opens a modal.
+    """
+    ack()  # Acknowledge the shortcut invocation
+
+    # Define the modal view payload
+    modal_view = {
+    "type": "modal",
+    "callback_id": "generate_blog_article",
+    "title": {
+        "type": "plain_text",
+        "text": "SEO Blog Article",
+        "emoji": True
+    },
+    "submit": {
+        "type": "plain_text",
+        "text": ":writer: Generate",
+        "emoji": True
+    },
+    "close": {
+        "type": "plain_text",
+        "text": "Cancel",
+        "emoji": True
+    },
+    "blocks": [
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "Provide details of the Blog you want to write below"
+            }
+        },
+        {
+            "type": "input",
+            "block_id": "blog_title_block",
+            "element": {
+                "type": "plain_text_input",
+                "action_id": "blog_title_input"
+            },
+            "label": {
+                "type": "plain_text",
+                "text": "Blog Title",
+                "emoji": True
+            }
+        },
+        {
+            "type": "input",
+            "block_id": "objectives_block",
+            "element": {
+                "type": "plain_text_input",
+                "multiline": True,
+                "action_id": "objectives_input"
+            },
+            "label": {
+                "type": "plain_text",
+                "text": "Objectives",
+                "emoji": True
+            }
+        },
+        {
+            "type": "input",
+            "block_id": "sources_block",
+            "element": {
+                "type": "plain_text_input",
+                "multiline": True,
+                "action_id": "sources_input"
+            },
+            "label": {
+                "type": "plain_text",
+                "text": "Sources",
+                "emoji": True
+            }
+        },
+        {
+            "type": "input",
+            "block_id": "keywords_block",
+            "element": {
+                "type": "plain_text_input",
+                "action_id": "keywords_input"
+            },
+            "label": {
+                "type": "plain_text",
+                "text": "Primary Keywords",
+                "emoji": True
+            }
+        }
+    ]
+}
+
+
+    # Open the modal
+    client.views_open(
+        trigger_id=body["trigger_id"],
+        view=modal_view
+    )
+@slack_app.view("generate_blog_article")
+def handle_generate_blog_article_submission(ack, body, client, logger):
+    """
+    Handles the submission of the 'generate_blog_article' modal.
+    """
+    ack()  # Acknowledge the submission immediately
+
+    try:
+        # Extract state values using explicit block_ids
+        state_values = body["view"]["state"]["values"]
+        
+        blog_title = state_values["blog_title_block"]["blog_title_input"]["value"]
+        objectives = state_values["objectives_block"]["objectives_input"]["value"]
+        sources = state_values["sources_block"]["sources_input"]["value"]
+        keywords = state_values["keywords_block"]["keywords_input"]["value"]
+
+        # Prepare inputs for text generation
+        text_gen_inputs = [
+            {
+                "id": "Blog Title",
+                "value": [blog_title]
+            },
+            {
+                "id": "Objective",
+                "value": [objectives]
+            },
+            {
+                "id": "Sources",
+                "value": [source.strip() for source in sources.split('\n') if source.strip()]
+            },
+            {
+                "id": "Primary Keyword",
+                "value": [keywords]
+            }
+        ]
+
+        # Simulate loading process with sequential messages
+        channel_id = "C08476AM146"
+        initial_message = client.chat_postMessage(
+            channel=channel_id,
+            text=":hourglass_flowing_sand: Generating Blog Article...",
+        )
+        message_ts = initial_message["ts"]
+
+        # Update message to show progress
+        time.sleep(2)
+        client.chat_update(
+            channel=channel_id,
+            ts=message_ts,
+            text=(
+                ":hourglass_flowing_sand: Generating Blog Article...\n"
+                ":hourglass_flowing_sand: Gathering inputs and preparing content..."
+            ),
+        )
+
+        time.sleep(2)
+        client.chat_update(
+            channel=channel_id,
+            ts=message_ts,
+            text=(
+                ":hourglass_flowing_sand: Generating Blog Article...\n"
+                ":white_check_mark: Gathering inputs and preparing content...\n"
+                ":hourglass_flowing_sand: Finalizing the article..."
+            ),
+        )
+
+        time.sleep(2)
+        client.chat_update(
+            channel=channel_id,
+            ts=message_ts,
+            text=(
+                ":white_check_mark: Generating Blog Article...\n"
+                ":white_check_mark: Gathering inputs and preparing content...\n"
+                ":white_check_mark: Finalizing the article...\n"
+                ":hourglass_flowing_sand: Almost done..."
+            ),
+        )
+
+        time.sleep(2)
+        client.chat_update(
+            channel=channel_id,
+            ts=message_ts,
+            text=(
+                ":white_check_mark: Generating Blog Article...\n"
+                ":white_check_mark: Gathering inputs and preparing content...\n"
+                ":white_check_mark: Finalizing the article...\n"
+                ":white_check_mark: Almost done...\n"
+                "Blog article is ready for review!"
+            ),
+        )
+
+        # Use the existing Canvas link
+        canvas_url = "https://writerai.slack.com/docs/T02AJRK99/F0882E6N0P5"
+
+        # Send the existing Canvas URL to the specified channel with approval buttons
+        client.chat_postMessage(
+            channel=channel_id,
+            text=":white_check_mark: Blog article is ready for review!",
+            blocks=[
+                {
+                    "type": "section",
+                    "block_id": "review_section",
+                    "text": {"type": "mrkdwn", "text": f"*Your Blog Article is Ready for Review* ✨\nClick here to review the blog article: <{canvas_url}|View Blog Article Canvas>"}
+                },
+                {
+                    "type": "section",
+                    "block_id": "instruction_section",
+                    "text": {"type": "mrkdwn", "text": "Please review the document and approve or request changes."}
+                },
+                {
+                    "type": "actions",
+                    "block_id": "action_buttons",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": ":white_check_mark: Approve"},
+                            "action_id": "approve_blog_article",
+                            "value": "approve",
+                            "style": "primary"
+                        },
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": ":x: Request Changes"},
+                            "action_id": "request_changes_blog_article",
+                            "value": "request_changes"
+                        }
+                    ]
+                }
+            ]
+        )
+
+    except Exception as e:
+        logger.error(f"Error handling blog article submission: {e}")
+        client.chat_postMessage(
+            channel=body["user"]["id"],
+            text=f":warning: There was an error processing your request: {str(e)}"
+        )
+
+
 # Functionality to share a Canvas document
 def post_canvas_message(canvas_url: str, channel_id: str, message_text: str = "Here is the canvas you requested!"):
     """
@@ -455,12 +745,10 @@ def handle_create_followup_email(ack, body, client):
     """
     Handles the 'Create Follow-Up Email' button click and opens a modal.
     """
-    ack()  # Acknowledge the action
-
-    # Get the thread timestamp of the original message
+    ack()
     thread_ts = body["message"]["ts"]
 
-    # Open a modal with a dropdown for tone of voice selection
+    # Update the modal view to include a callback_id
     client.views_open(
         trigger_id=body["trigger_id"],
         view={
@@ -483,7 +771,7 @@ def handle_create_followup_email(ack, body, client):
                                 "value": "formal",
                             },
                             {
-                                "text": {"type": "plain_text", "text": "May's Vouice"},
+                                "text": {"type": "plain_text", "text": "May's Voice"},
                                 "value": "casual",
                             },
                             {
@@ -506,8 +794,7 @@ def handle_followup_email_submission(ack, body, client):
     Handles the submission of the follow-up email modal.
     Sends a threaded message with the Canvas link and action buttons.
     """
-    ack()  # Acknowledge the submission
-
+    ack()
     # Extract the selected tone of voice
     state_values = body["view"]["state"]["values"]
     tone_of_voice = state_values["tone_of_voice"]["tone_select"]["selected_option"]["value"]
@@ -666,9 +953,500 @@ def handle_executive_summary_action(ack, body, client):
         logger.error(f"Error during message update sequence: {e}")
 
 
-
-
-
 # Endpoint handler for Slack events
 def get_slack_handler():
     return slack_handler
+
+# Add a catch-all view submission handler
+@slack_app.view("")
+def handle_view_submission_events(ack, body, logger):
+    """
+    Generic handler for any unhandled view submissions
+    """
+    ack()
+    logger.info(f"Caught unhandled view submission: {body}")
+article_content = textwrap.dedent("""
+
+## Introduction
+
+Imagine this: 95% of SMBs are effectively using generative AI, according to Salesforce's SMB research. This statistic is a powerful testament to the potential of AI in small businesses. Small businesses can successfully adopt AI to unlock growth, productivity, and innovation. In this blog, we'll explore why AI is a game-changer for small businesses, showcase real-world examples of AI success, address common challenges, and highlight Salesforce's AI tools that can help you get started.
+
+## Why AI is a Game-Changer for Small Businesses
+
+AI offers a multitude of benefits for small businesses, making it a valuable investment. From increasing efficiency to improving customer service and enhancing decision-making, the advantages are manifold.
+
+### Increased Efficiency
+
+AI can automate routine tasks, such as data entry, customer inquiries, and even content creation. This not only saves time but also reduces the risk of errors, allowing your team to focus on more strategic and creative work. According to Gartner, AI can help SMBs increase revenue by 10% and reduce costs by 15%.
+
+### Improved Customer Service
+
+Customer satisfaction is crucial for small businesses. AI-powered chatbots and virtual assistants can provide 24/7 support, answering common questions and handling basic tasks. This ensures that your customers receive prompt and accurate assistance, enhancing their overall experience.
+
+### Enhanced Decision-Making
+
+AI can analyze vast amounts of data to provide actionable insights. For instance, predictive analytics can help you anticipate market trends, customer behavior, and potential issues. This allows you to make informed decisions that can drive your business forward.
+
+### Assessing Readiness with the AI Maturity Assessment Tool
+
+Salesforce's AI Maturity Assessment Tool is a valuable resource for SMBs. It helps you evaluate your current AI capabilities and identify areas for improvement. By using this tool, you can gain a clear understanding of where you stand and what steps you need to take to fully leverage AI.
+
+## Real-World Examples of AI Success
+
+Let's dive into some case studies of small businesses that have successfully adopted AI using Salesforce tools.
+
+### Case Study 1: BACA Systems
+
+BACA Systems, a leading provider of IT solutions, used Einstein Activity Capture to streamline their sales processes. They noticed a significant improvement in customer lifetime value. As one of their executives put it, "We use Einstein Activity Capture to streamline our sales processes and boost customer lifetime value."
+
+### Case Study 2: Crexi
+
+Crexi, a commercial real estate platform, leveraged Agentic AI to optimize their sales priorities. The results were impressive. "Agentic AI has helped us to optimize our sales priorities and improve our bottom line," said their CEO.
+
+### Case Study 3: Bombardier
+
+Bombardier, a global leader in transportation, used AI to break down data silos and integrate predictive analytics into their sales process. "AI has helped us to break down data silos and integrate predictive analytics into our sales process," noted one of their technologists.
+
+## Overcoming Common AI Challenges
+
+While the benefits of AI are clear, small businesses often face challenges such as limited resources and technical expertise. However, these challenges can be overcome with the right approach.
+
+### Limited Resources
+
+One of the primary concerns for SMBs is the cost and resources required to implement AI. However, third-party research shows that the return on investment (ROI) is substantial. For instance, SMBs that adopt AI are twice as likely to be profitable as those that don't, according to Forrester. This makes AI a cost-effective solution in the long run.
+
+### Technical Expertise
+
+Many small businesses may feel they lack the technical expertise to implement AI. However, Salesforce's pre-built AI solutions are designed to be user-friendly and require minimal technical knowledge. Additionally, there are numerous resources and training programs available to help you get started.
+
+### Data Silos
+
+Data silos can hinder the effectiveness of AI. To address this, ensure that all your data is harmonized and integrated. This means having a single, consistent format for all your data, which can be used to fine-tune AI models. Salesforce's Data Cloud can help you achieve this by providing a unified view of your customer data.
+
+## Salesforce's AI Tools for Small Businesses
+
+Salesforce offers a range of AI tools specifically designed for small businesses. These tools are user-friendly and can help you adopt AI with ease.
+
+### Einstein AI Tools
+
+Einstein AI is a suite of AI tools that can help you with various aspects of your business. Here are some of the key capabilities:
+
+- **Predictive Analytics**: Use AI to forecast sales, customer behavior, and market trends. This can help you make data-driven decisions and stay ahead of the competition.
+- **Generative AI for Content**: Create personalized marketing materials, product descriptions, and customer communications with AI. This can save you time and ensure that your content is relevant and engaging.
+- **Workflow Automation**: Automate repetitive tasks to improve productivity and reduce errors. This can help you streamline your operations and focus on more strategic initiatives.
+
+### AI Use Case Library
+
+Salesforce's AI Use Case Library is a valuable resource for small businesses. It provides a wide range of practical applications of AI, from sales and marketing to customer service and operations. By exploring these use cases, you can gain inspiration and insights on how to apply AI in your business.
+
+## Competitive Benchmarking
+
+When it comes to AI adoption, small businesses often face challenges that differ from those of large enterprises. However, SMBs have unique advantages that can help them succeed.
+
+### Agility and Speed to Market
+
+One of the biggest advantages of small businesses is their agility. Unlike large enterprises, SMBs can quickly implement new technologies and adapt to changes in the market. This agility allows you to capitalize on AI's benefits faster and more efficiently.
+
+### Cost, Time, and Resource Savings
+
+Developing in-house AI solutions can be expensive and time-consuming. Salesforce's pre-built AI solutions offer a cost-effective and time-saving alternative. These solutions are tailored to the needs of SMBs and can be implemented quickly, without the need for extensive development resources.
+
+## Broader Economic Impact
+
+AI has the potential to level the playing field for small businesses competing against larger enterprises. By providing access to cutting-edge technologies, AI can help SMBs grow and create jobs.
+
+### Economic Contribution of SMBs
+
+Small businesses are the backbone of the economy, contributing significantly to job creation and economic growth. According to Statistics Canada, small businesses account for a substantial portion of the country's GDP and employment. By adopting AI, you can enhance your business's performance and contribute to the broader economic landscape.
+
+### Leveling the Playing Field
+
+AI can help small businesses level the playing field against larger enterprises. With access to the same advanced technologies, you can compete more effectively and deliver exceptional customer experiences. As Marc Benioff, CEO of Salesforce, noted, "AI is the future of business, and SMBs that don't adopt it will be left behind."
+
+## Conclusion
+
+In summary, AI is a powerful tool that can help small businesses unlock growth, productivity, and innovation. By understanding the benefits, learning from real-world examples, and overcoming common challenges, you can successfully adopt AI and stay ahead of the curve. We encourage you to explore Salesforce's AI tools and discover how they can help your small business thrive.
+""")
+
+
+        
+@slack_app.action("approve_blog_article")
+def handle_approve_blog_article(ack, body, client, logger):
+    """
+    Handles the 'Approve' button click for the blog article.
+    """
+    # Acknowledge the button click immediately
+    ack()
+
+    # Run the heavy operation in a separate thread
+    def process_approval():
+        try:
+            # Log the body for debugging
+            logger.info(f"Slack event body: {body}")
+
+            # Extract channel ID and thread_ts from the message
+            channel_id = body["channel"]["id"]
+            thread_ts = body.get("message", {}).get("ts")
+
+            # Notify the user that the article is being sent to WordPress
+            client.chat_postMessage(
+                channel=channel_id,
+                thread_ts=thread_ts,
+                text=":hourglass_flowing_sand: Sending the article to WordPress..."
+            )
+
+            # Convert markdown to HTML first
+            html_content = markdown.markdown(article_content)
+            print(html_content)
+            
+            # Then use it in the create_article call
+            async def create_article_async():
+                return await wordpress_service.create_article(
+                    title="Why Small Businesses Should Embrace AI: Unlocking Growth, Productivity, and Innovation",
+                    content=html_content,  # Use the converted HTML content
+                    status="draft",
+                    format="standard"
+                )
+
+            # Run the async function and get the result
+            result = asyncio.run(create_article_async())
+
+            # Log the result for debugging
+            logger.info(f"WordPress article creation result: {result}")
+
+            # Construct the draft link
+            post_id = result.get("id")
+            wordpress_site_url = "https://wordpress-p30c.onrender.com"
+            draft_link = f"{wordpress_site_url}/wp-admin/post.php?post={post_id}&action=edit"
+
+            # Notify the user of success
+            client.chat_postMessage(
+                channel=channel_id,
+                thread_ts=thread_ts,
+                text=f":white_check_mark: Article successfully sent to WordPress as a draft! <{draft_link}|View Draft>"
+            )
+
+        except Exception as e:
+            logger.error(f"Error handling approve button: {e}")
+            client.chat_postMessage(
+                channel=channel_id,
+                thread_ts=thread_ts,
+                text=f":warning: An error occurred while sending the article to WordPress: {str(e)}"
+            )
+
+    # Start the long-running task in a separate thread
+    Thread(target=process_approval).start()
+
+@slack_app.event("file_shared")
+def handle_file_shared_event(body, logger):
+    """
+    Handles the 'file_shared' event from Slack, extracts email information, creates a Salesforce record, and sends a message to Slack.
+    """
+    try:
+        # Log the entire event body for debugging
+        logger.info("Received file_shared event")
+        logger.info(body)
+
+        # Extract relevant data from the event
+        event_data = body.get("event", {})
+        files = event_data.get("files", [])
+        user_id = event_data.get("user")
+        channel_id = event_data.get("channel")
+
+        # Set the claim details
+        claim_amount = "7800.00"
+        claim_status = "New"
+        claim_type = "Critical Illness"
+        date_of_claim = datetime.today().strftime('%Y-%m-%d')
+        healthcare_provider = "City General Hospital"
+
+        # Create a Salesforce record
+        sf.Insurance_Claim__c.create({
+            'Claim_Amount__c': claim_amount,
+            'Claim_Status__c': claim_status,
+            'Claim_Type__c': claim_type,
+            'Date_of_Claim__c': date_of_claim,
+            'Healthcare_Provider__c': healthcare_provider,
+            'Contact__c': '003aj00000Ek20LAAR'
+        })
+
+
+            # Send claim details to Slack channel with interactive buttons
+        slack_app.client.chat_postMessage(
+            channel="C089BMNHYQJ",
+            text=(
+                f"New Insurance Claim Received:\n"
+                f"Claim Amount: $$7,800\n"
+                f"Claim Status: {claim_status}\n"
+                f"Claim Type: {claim_type}\n"
+                f"Date of Claim: {date_of_claim}\n"
+                f"Healthcare Provider: {healthcare_provider}\n"
+                f"Priority: High :exclamation: \n"
+                f"Sentiment: Negative :red_circle: \n" 
+                "Salesforce Record: "
+            ),
+            blocks=[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": (
+                            f"*New Insurance Claim Received:*\n"
+                            f"*Claim Amount:* $7,800\n"
+                            f"*Claim Status:* {claim_status}\n"
+                            f"*Claim Type:* {claim_type}\n"
+                            f"*Date of Claim:* {date_of_claim}\n"
+                            f"*Healthcare Provider:* {healthcare_provider}\n"
+                            f"*Priority:* High :exclamation:\n"
+                            f"*Sentiment:* Negative :red_circle:\n"
+                            f"*Salesforce Record:* <https://writer6-dev-ed.develop.lightning.force.com/lightning/r/Insurance_Claim__c/a00aj00000cNlbSAAS/view|View Record>"
+                        )
+                    }
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                         {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": ":writer-icon: Analyze Claim"},
+                            "action_id": "review_policy_coverage"
+                        },
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "View Claim"},
+                            "action_id": "verify_medical_records", 
+                            "url": "https://writer6-dev-ed.develop.lightning.force.com/lightning/r/Insurance_Claim__c/a00aj00000cNlbSAAS/view"
+                        },
+
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "Run Fraud Check"},
+                            "action_id": "run_fraud_check"
+                        },
+                       
+                    ]
+                }
+            ]
+        )
+
+    except Exception as e:
+        logger.error(f"Error handling file_shared event: {e}")
+
+@slack_app.action("review_policy_coverage")
+def handle_review_policy_coverage(ack, body, client):
+    """
+    Handles the 'Review Policy Coverage' button click and updates a Slack message sequentially with progress updates.
+    """
+    ack()  # Acknowledge the button press
+
+    # Extract channel ID and thread_ts from the message
+    channel_id = body["channel"]["id"]
+    thread_ts = body.get("message", {}).get("ts")
+
+    # Define sequential messages
+    messages = [
+        ":hourglass_flowing_sand: Retrieving policy holding file from :salesforce-logo: Salesforce...",
+        (
+            ":hourglass_flowing_sand: Retrieving policy holding file from :salesforce-logo: Salesforce...\n"
+            ":hourglass_flowing_sand: Retrieving doctor report from :database: internal database..."
+        ),
+        (
+            ":hourglass_flowing_sand: Retrieving policy holding file from :salesforce-logo: Salesforce...\n"
+            ":hourglass_flowing_sand: Retrieving doctor report from :database: internal database...\n"
+            ":hourglass_flowing_sand: Retrieving police report from :database: internal database..."
+        ),
+        (
+            ":hourglass_flowing_sand: Retrieving policy holding file from :salesforce-logo: Salesforce...\n"
+            ":hourglass_flowing_sand: Retrieving doctor report from :database: internal database...\n"
+            ":hourglass_flowing_sand: Retrieving police report from :database: internal database...\n"
+            ":hourglass_flowing_sand: Searching :writer: knowledge graph for policy details..."
+        ),
+        (
+            ":white_check_mark: Policy coverage information retrieved.\n"
+            "Sources:\n"
+            "- Policyholding file from :salesforce-logo: Salesforce\n"
+            "- Doctor report from :database: internal database\n"
+            "- Police report from :database: internal database\n"
+            "- :writer: Knowledge Graph\n\n"
+            "Summary can be found here: <https://writerai.slack.com/docs/T02AJRK99/F088DBCSDJA|Canvas Link>"
+        ),
+    ]
+
+    try:
+        # Send the initial message
+        initial_payload = {
+            "channel": channel_id,
+            "text": messages[0],
+            "thread_ts": thread_ts,  # Ensure it is a threaded reply
+        }
+        response = client.chat_postMessage(**initial_payload)
+
+        if not response["ok"]:
+            logger.error(f"Error sending initial message: {response['error']}")
+            return
+
+        message_ts = response["ts"]  # Timestamp of the sent message
+
+        # Sequentially update the message with progress
+        for i in range(1, len(messages)):
+            time.sleep(5)  # Delay between updates
+            update_payload = {
+                "channel": channel_id,
+                "ts": message_ts,  # Reference the original message's timestamp
+                "text": messages[i],
+            }
+            update_response = client.chat_update(**update_payload)
+
+            if not update_response["ok"]:
+                logger.error(f"Error updating message at step {i}: {update_response['error']}")
+                break
+
+        # Add buttons after the final message
+        # Define the blocks for the message with buttons
+        final_buttons_payload = {
+            "channel": channel_id,
+            "ts": message_ts,
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Follow up with the customer with one of the following actions:"
+                    }
+                },
+                {
+                    "type": "actions",
+                    "block_id": "policy_review_actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Approved"
+                            },
+                            "value": "approved",
+                            "action_id": "approve"
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Conditionally Approved"
+                            },
+                            "value": "conditionally_approved",
+                            "action_id": "conditionally_approved"
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Additional Investigation Required"
+                            },
+                            "value": "additional_investigation",
+                            "action_id": "additional_investigation"
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Rejected"
+                            },
+                            "value": "rejected",
+                            "action_id": "reject"
+                        }
+                    ]
+                }
+            ]
+        }
+        final_buttons_payload["thread_ts"] = message_ts  # Ensure the message is threaded
+        client.chat_postMessage(**final_buttons_payload)
+
+    except Exception as e:
+        logger.error(f"Error during message update sequence: {e}")
+
+
+@slack_app.action("verify_medical_records")
+def handle_some_action(ack, body, logger):
+    ack()
+    logger.info(body)
+
+
+# Handle Conditional Approval button click
+@slack_app.action("conditionally_approved")
+def handle_conditionally_approved(ack, body, logger):
+    ack()
+    logger.info(body)
+
+    # Retrieve channel ID and message timestamp from the correct location in the payload
+    channel_id = body.get("container", {}).get("channel_id")
+    message_ts = body.get("container", {}).get("message_ts")
+
+    # Log an error if channel ID or message timestamp is missing
+    if not channel_id or not message_ts:
+        logger.error("Missing channel ID or message timestamp in the request body.")
+        return
+
+    # Simulate updating Salesforce status to "Conditionally Approved"
+    logger.info("Simulating update of Salesforce status to 'Conditionally Approved'")
+
+    # Send initial message indicating conditional approval
+    try:
+        response = slack_app.client.chat_postMessage(
+            channel=channel_id,
+            text="Claim is conditionally approved in Salesforce",
+            thread_ts=message_ts
+        )
+        logger.info(f"Initial conditional approval message sent: {response}")
+    except Exception as e:
+        logger.error(f"Failed to send initial conditional approval message: {e}")
+        return
+
+    # Wait for 5 seconds before sending the next message
+    time.sleep(5)
+
+    # Simulate updating Salesforce status to "Done"
+    logger.info("Simulating update of Salesforce status to 'Done'")
+
+    # Send a follow-up message with the suggested email canvas link
+    try:
+        response = slack_app.client.chat_postMessage(
+            channel=channel_id,
+            text="Here is a suggested email to send to the customer: <https://writerai.slack.com/docs/T02AJRK99/F088P7L690U|Canvas Link>",
+            thread_ts=message_ts
+        )
+        logger.info(f"Follow-up message with canvas link sent: {response}")
+    except Exception as e:
+        logger.error(f"Failed to send follow-up message: {e}")
+
+
+# Function to delete all messages in a channel
+def delete_all_messages(channel_id):
+    try:
+        # Retrieve all messages in the channel
+        response = slack_app.client.conversations_history(channel=channel_id)
+        messages = response.get("messages", [])
+
+        # Loop through and delete each message and its threaded replies
+        for message in messages:
+            ts = message.get("ts")
+            if ts:
+                # Retrieve threaded replies
+                replies_response = slack_app.client.conversations_replies(channel=channel_id, ts=ts)
+                replies = replies_response.get("messages", [])
+
+                # Delete each threaded reply
+                for reply in replies:
+                    reply_ts = reply.get("ts")
+                    if reply_ts:
+                        slack_app.client.chat_delete(channel=channel_id, ts=reply_ts)
+                        logger.info(f"Deleted threaded reply with timestamp: {reply_ts}")
+
+                # Delete the original message
+                slack_app.client.chat_delete(channel=channel_id, ts=ts)
+                logger.info(f"Deleted message with timestamp: {ts}")
+    except Exception as e:
+        logger.error(f"Error deleting messages: {e}")
+
+# Execute the function to delete all messages in a specific channel
+delete_all_messages("C08476AM146")
+

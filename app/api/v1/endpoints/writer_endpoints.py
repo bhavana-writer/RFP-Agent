@@ -12,6 +12,15 @@ class QuestionGraphRequest(BaseModel):
     graph_ids: list
     question: str
 
+class TextGenInput(BaseModel):
+    id: str
+    value: List[str]
+
+class TextGenerationRequest(BaseModel):
+    application_id: str
+    inputs: List[TextGenInput]
+    stream: bool = False
+
 @router.post("/chat/completion")
 async def chat_completion_endpoint(
     messages: list, 
@@ -35,18 +44,25 @@ async def chat_completion_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/text-generation")
-async def text_generation_endpoint(
-    application_id: str,
-    inputs: List[TextGenInput]  # Inputs are a list of TextGenInput
-):
+@router.post("/text-generation", response_model=dict)
+async def text_generation_endpoint(request: TextGenerationRequest):
     """
     API endpoint to generate content using a Writer text generation application.
     """
     try:
+        # Convert Pydantic models to dictionaries
+        writer_inputs = [
+            {
+                "id": input_item.id,
+                "value": input_item.value
+            }
+            for input_item in request.inputs
+        ]
+        
         response = writer_service.call_writer_text_gen_app(
-            application_id=application_id,
-            inputs=inputs
+            application_id=request.application_id,
+            inputs=writer_inputs,
+            stream=request.stream
         )
         if "error" in response:
             raise HTTPException(status_code=500, detail=response["error"])

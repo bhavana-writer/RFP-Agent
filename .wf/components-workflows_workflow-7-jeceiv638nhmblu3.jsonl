@@ -1,0 +1,3 @@
+{"id": "jeceiv638nhmblu3", "type": "workflows_workflow", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "workflows_root", "position": 7}
+{"id": "ezyey50tvq0e89jq", "type": "workflows_writeraddtokg", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "jeceiv638nhmblu3", "position": 0, "x": 842, "y": 227}
+{"id": "9reet5w1c9bg79up", "type": "workflows_httprequest", "content": {}, "handlers": {}, "isCodeManaged": false, "outs": [{"toNodeId": "ezyey50tvq0e89jq", "outId": "success"}], "parentId": "jeceiv638nhmblu3", "position": 1, "x": 118, "y": 236}

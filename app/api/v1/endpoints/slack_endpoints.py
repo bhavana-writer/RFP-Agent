@@ -103,3 +103,18 @@ async def send_account_followup(channel_id: str, message: str):
     except Exception as e:
         logger.error(f"Error in /message/account-followup: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+#Webhook for inbound enquiries
+#TODO: Add a webhook for inbound enquiries
+#TODO: Use LLM to extract information from mail and attachment
+#TODO: Use LLM to determine type of enquiry
+#TODO: Take struture and create record in Salesforce
+#TODO: Send a message to a Slack channel with enquiry details and some actions including email that can be sent to the user
+
+@router.post("/events")
+async def receive_events(request: Request):
+    """
+    API endpoint to receive events from Slack.
+    """
+    return {"status": "ok"}
