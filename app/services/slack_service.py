@@ -1448,5 +1448,5 @@ def delete_all_messages(channel_id):
         logger.error(f"Error deleting messages: {e}")
 
 # Execute the function to delete all messages in a specific channel
-delete_all_messages("C08476AM146")
+#delete_all_messages("C08476AM146")
 

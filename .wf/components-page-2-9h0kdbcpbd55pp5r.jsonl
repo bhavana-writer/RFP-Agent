@@ -1,0 +1,12 @@
+{"id": "9h0kdbcpbd55pp5r", "type": "page", "content": {"key": "Firefly Demo"}, "handlers": {}, "isCodeManaged": false, "parentId": "root", "position": 2}
+{"id": "n6xbkaqc5vcqstov", "type": "header", "content": {"text": "Adobe Workflows Demo"}, "handlers": {}, "isCodeManaged": false, "parentId": "9h0kdbcpbd55pp5r", "position": 0}
+{"id": "pqde7b9neorw4gd5", "type": "columns", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "9h0kdbcpbd55pp5r", "position": 1}
+{"id": "h6gfdm7aafqj8wxh", "type": "column", "content": {"title": "Input", "width": ".5"}, "handlers": {}, "isCodeManaged": false, "parentId": "pqde7b9neorw4gd5", "position": 0}
+{"id": "aktl31ec7ybs6v4j", "type": "textinput", "binding": {"eventType": "wf-change", "stateRef": "input_content_brief"}, "content": {"label": "Content Brief"}, "handlers": {}, "isCodeManaged": false, "parentId": "h6gfdm7aafqj8wxh", "position": 0}
+{"id": "xmtpjmgd5j94ig58", "type": "dropdowninput", "binding": {"eventType": "wf-option-change", "stateRef": "input_brand_tone"}, "content": {"label": "Brand Tone", "options": "{\n  \"Professional\": \"Professional\",\n  \"Casual \": \"Casual \",\n  \"Formal\": \"Formal\"\n}"}, "handlers": {}, "isCodeManaged": false, "parentId": "h6gfdm7aafqj8wxh", "position": 1}
+{"id": "puku9164qw8qidzk", "type": "textinput", "binding": {"eventType": "wf-change", "stateRef": "input_target_audience"}, "content": {"label": "Target Audience"}, "handlers": {}, "isCodeManaged": false, "parentId": "h6gfdm7aafqj8wxh", "position": 2}
+{"id": "8ltr1h0kkrk6vzk3", "type": "textinput", "binding": {"eventType": "wf-change", "stateRef": "input_key_message"}, "content": {"label": "Key Message"}, "handlers": {}, "isCodeManaged": false, "parentId": "h6gfdm7aafqj8wxh", "position": 3}
+{"id": "7hxyw2umawvjg8it", "type": "button", "content": {"text": "Generate Text"}, "handlers": {"wf-click": "$runWorkflow_Generate Article and Image"}, "isCodeManaged": false, "parentId": "h6gfdm7aafqj8wxh", "position": 4}
+{"id": "0ebjpfwfuh0339nf", "type": "column", "content": {"width": "1"}, "handlers": {}, "isCodeManaged": false, "parentId": "pqde7b9neorw4gd5", "position": 1}
+{"id": "joey6hc999gnzhty", "type": "text", "content": {"text": "@{output_article_text}", "useMarkdown": "yes"}, "handlers": {}, "isCodeManaged": false, "parentId": "0ebjpfwfuh0339nf", "position": 0}
+{"id": "xvlg8vk78v9syvve", "type": "image", "content": {"caption": "Image Caption", "src": "@{output_firefly_image}"}, "handlers": {}, "isCodeManaged": false, "parentId": "0ebjpfwfuh0339nf", "position": 1}

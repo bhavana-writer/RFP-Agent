@@ -7,7 +7,8 @@ from app.api.v1.endpoints import (
     writer_endpoints,
     base_url_endpoints,
     tavily_endpoints,
-    wordpress_endpoints
+    wordpress_endpoints,
+    firefly_endpoints
 )
 
 api_router = APIRouter()
@@ -20,6 +21,7 @@ api_router.include_router(salesforce_endpoints.router, prefix="/salesforce", tag
 api_router.include_router(writer_endpoints.router, prefix="/writer", tags=["writer"])
 api_router.include_router(base_url_endpoints.router, prefix="/base-url", tags=["base_url"])
 api_router.include_router(tavily_endpoints.router, prefix="/tavily", tags=["Tavily"])
+api_router.include_router(firefly_endpoints.router, prefix="/firefly", tags=["firefly"])
 
 # Add WordPress endpoints
 api_router.include_router(wordpress_endpoints.router, prefix="/wordpress", tags=["wordpress"])
