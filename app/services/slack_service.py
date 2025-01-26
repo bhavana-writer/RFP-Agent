@@ -767,15 +767,15 @@ def handle_create_followup_email(ack, body, client):
                         "placeholder": {"type": "plain_text", "text": "Choose a tone"},
                         "options": [
                             {
-                                "text": {"type": "plain_text", "text": "Writer Default Voice"},
+                                "text": {"type": "plain_text", "text": "State Street Default Voice"},
                                 "value": "formal",
                             },
                             {
-                                "text": {"type": "plain_text", "text": "May's Voice"},
+                                "text": {"type": "plain_text", "text": "Aman's Voice"},
                                 "value": "casual",
                             },
                             {
-                                "text": {"type": "plain_text", "text": "Company Default Voice"},
+                                "text": {"type": "plain_text", "text": "State Street Alpha Default Voice"},
                                 "value": "professional",
                             },
                         ],
