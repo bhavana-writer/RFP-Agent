@@ -314,3 +314,5 @@ class SalesforceService:
         total_count = sum(record["expr0"] for record in result["records"])
         conversion_rates = {record["StageName"]: (record["expr0"] / total_count) * 100 for record in result["records"]}
         return conversion_rates
+    
+   

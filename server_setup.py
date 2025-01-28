@@ -5,6 +5,8 @@ import writer.serve
 from app.config import settings
 import logging
 from dotenv import load_dotenv
+from string_block import JSONToString
+
 
 
 # Load environment variables
@@ -17,6 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+JSONToString.register("workflows_jsontostring")
 
 
 # Add the project root directory to sys.path

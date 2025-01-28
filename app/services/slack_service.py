@@ -283,6 +283,213 @@ def handle_message_events(message, say, client):
         )
         return
 
+    if channel_id == "C084PGEUXND":
+        # Add reminder and examples to the query for LLM
+        query = (
+            f"{user_query}\n\n"
+            "Please return the response formatted in clean Slack markdown (`mrkdwn`) with clear headers, bullet points, and proper indentation. "
+            "Use the following format as a guide:\n\n"
+            "* Example Output Format:\n"
+            "- *Key*: Value\n"
+            "- *Link*: <https://example.com|example>\n"
+            "  - Nested Item 1\n"
+            "  - Nested Item 2\n"
+            "- *Key with List*:\n"
+            "  - Item 1\n"
+            "  - Item 2\n"
+            "- *Contacts*:\n"
+            "  - *Name*: John Doe, *Email*: john.doe@example.com\n"
+            "- *Activities*:\n"
+            "  - *Subject*: Task 1, *Status*: Completed, *Date*: 2024-12-01\n\n"
+            "Ensure consistent indentation and bullet point alignment for readability."
+        )
+
+        # Post an initial processing message
+        result = client.chat_postMessage(channel=channel_id, text=":mag: Processing...", thread_ts=thread_ts)
+        thread_ts = result["ts"]
+
+        try:
+            # Invoke the workflow with the query and config
+            state = app.invoke(
+                {"messages": [{"role": "user", "content": query}]},
+                config={"configurable": {"thread_id": thread_ts}}
+            )
+
+            # Safely extract the last message content
+            response_messages = state["messages"]
+            if response_messages:
+                client.chat_postMessage(
+                    channel=channel_id,
+                    text=response_messages[-1]["content"],
+                    thread_ts=thread_ts,
+                )
+        except Exception as e:
+            client.chat_postMessage(
+                channel=channel_id,
+                text=f":warning: An error occurred: {str(e)}",
+                thread_ts=thread_ts,
+            )
+    elif channel_id == "C08AK4CSTT4":
+        # Send the Bid or No Bid synopsis for an RFP
+        rfp_message = (
+            "Request for Proposal (RFP): Health Provider Services\n\n"
+            "*Cover Page*\n"
+            "*Title:* Request for Proposal (RFP) – Health Provider Services for Trader Joe’s\n"
+            "*Subtitle:* Comprehensive Healthcare Solutions for 5,000 Employees\n"
+            "*Date of Issuance:* March 15, 2025\n"
+            "*Submission Deadline:* January 27, 2025\n"
+            "*Contact Information:* [Name, Email, Phone Number]\n\n"
+            "1. *Introduction and Background*\n"
+            "Trader Joe’s is a leading B2B SaaS provider, recognized for its innovative solutions and commitment to excellence. "
+            "With a rapidly growing workforce of a diverse workforce of 50,000 employees across the United States, including part-time, full-time, and seasonal staff, "
+            "we are dedicated to fostering a culture of health and well-being. This RFP seeks to identify a health provider partner capable of delivering comprehensive, "
+            "high-quality healthcare services that address the diverse needs of our employees. We aim to collaborate with a partner who shares our values and can enhance "
+            "our employee experience by providing cost-efficient, employee-centric, and innovative wellness solutions that reflect our unique values.\n\n"
+            "Our commitment to employee well-being is at the core of this initiative. Trader Joe’s seeks solutions that leverage cutting-edge technology, prioritize preventive care, "
+            "and ensure equitable access to services across all employee demographics. The selected partner will demonstrate the ability to scale services, innovate in delivery, "
+            "and contribute to our broader goals of sustainability and employee engagement.\n\n"
+            "2. *RFP Process Timeline*\n"
+            "*RFP Release Date:* January 27, 2025\n"
+            "*Deadline for Questions:* February 10, 2025\n"
+            "*Proposal Submission Deadline:* February 20, 2025\n"
+            "*Evaluation Period:* February 21, 2025 – March 10, 2025\n"
+            "*Final Decision Announcement:* March 15, 2025\n"
+            "*Contract Start Date:* May 1, 2025\n\n"
+            "3. *Scope of Work*\n"
+            "The selected provider will offer the following services:\n\n"
+            "3.1 *Core Services*\n"
+            "- Comprehensive health plans, including medical, dental, and vision.\n"
+            "- Behavioral health support (counseling, therapy, etc.).\n"
+            "- Preventive care services, including annual checkups, vaccinations, and screenings.\n"
+            "- Telemedicine and digital health solutions for easy access.\n"
+            "- Wellness programs, including fitness, nutrition, and stress management.\n"
+            "- Employee Assistance Programs (EAPs).\n"
+            "- Specialized support for high-risk health groups and chronic conditions.\n\n"
+            "3.2 *Additional Requirements*\n"
+            "- Nationwide network coverage to accommodate employees in all 50 states.\n"
+            "- Customizable plans tailored to the needs of diverse employee groups.\n"
+            "- Scalability to meet future workforce growth.\n"
+            "- Integration of wellness technology, including wearable devices and health analytics platforms.\n"
+            "- Ongoing health education programs tailored to retail workforce needs.\n\n"
+            "4. *Requirements and Expectations*\n\n"
+            "4.1 *Service Quality*\n"
+            "- Robust provider network with high satisfaction ratings.\n"
+            "- Strong customer service capabilities, including 24/7 support.\n"
+            "- Proven track record of working with organizations of similar size and scope.\n\n"
+            "4.2 *Data Security and Compliance*\n"
+            "- Full compliance with HIPAA and other relevant regulations.\n"
+            "- Secure handling and storage of employee health data.\n"
+            "- Regular audits to ensure compliance and data integrity.\n\n"
+            "4.3 *Technology and Innovation*\n"
+            "- Integration with digital platforms for telemedicine.\n"
+            "- Data analytics to track employee health trends and utilization.\n"
+            "- Implementation of AI-powered insights to identify risks and recommend interventions.\n\n"
+            "4.4 *Customization and Flexibility*\n"
+            "- Flexible plans that adapt to specific employee demographics.\n"
+            "- Modular service offerings to address various health needs.\n"
+            "- Support for multilingual employee populations.\n\n"
+            "4.5 *Sustainability and Wellness Alignment*\n"
+            "- Solutions that align with Trader Joe’s corporate sustainability goals.\n"
+            "- Programs focused on mental health, nutrition, and long-term wellness.\n\n"
+            "5. *Company and Employee Demographics*\n"
+            "- Total employees: 50,000\n"
+            "- Geographic distribution: Nationwide\n"
+            "- Employee demographics:\n"
+            "  - Age: Data available upon request or derived from internal HR analytics.\n"
+            "  - Gender: Data available upon request or derived from internal HR analytics.\n"
+            "  - Employment type: Part-time, full-time, and seasonal staff.\n"
+            "  - Other relevant information: Data available upon request or derived from internal HR analytics.\n\n"
+            "Trader Joe’s workforce is diverse and dynamic, with unique needs based on geography, role, and demographic trends. "
+            "The selected partner should demonstrate an understanding of the retail industry’s challenges and opportunities to provide comprehensive support.\n\n"
+            "6. *Submission Requirements*\n"
+            "Proposals must include the following:\n"
+            "- Cover Letter: Brief introduction and summary of your proposal.\n"
+            "- Executive Summary: High-level overview of your services.\n"
+            "- Detailed Response: Specific details addressing the scope of work and requirements.\n"
+            "- Case Studies: Examples of similar partnerships.\n"
+            "- References: Contact information for at least three current clients.\n"
+            "- Pricing Information: Detailed breakdown of costs and pricing structure.\n"
+            "- Implementation Plan: Timeline and strategy for onboarding and rollout.\n"
+            "- Sustainability Practices: Description of efforts to align with environmental and social sustainability goals.\n\n"
+            "*Formatting Guidelines*\n"
+            "- Submit as a PDF document.\n"
+            "- Use 12-point font, single-spaced, with 1-inch margins.\n"
+            "- Include a table of contents.\n"
+            "- Append any supplemental materials, such as brochures or whitepapers.\n\n"
+            "7. *Evaluation Criteria*\n"
+            "Proposals will be evaluated based on:\n"
+            "- Cost-effectiveness: 25%\n"
+            "- Provider network quality: 20%\n"
+            "- Technology and innovation: 20%\n"
+            "- Alignment with company goals: 15%\n"
+            "- References and case studies: 10%\n"
+            "- Implementation strategy: 10%\n\n"
+            "8. *Budget and Pricing Expectations*\n"
+            "- Estimated budget range: [Insert Budget]\n"
+            "- Preferred pricing structure: Per employee per month (PEPM) or fixed pricing model.\n"
+            "- Additional fees for optional services must be clearly outlined.\n"
+            "- Opportunities for cost-saving incentives and value-based care agreements should be detailed.\n\n"
+            "9. *Terms and Conditions*\n"
+            "- Proposals must remain valid for 90 days from the submission deadline.\n"
+            "- Confidentiality agreement: All submitted proposals will be treated as confidential.\n"
+            "- Ownership of proposal materials remains with the proposer unless otherwise stated.\n"
+            "- Trader Joe’s reserves the right to request additional information or clarification from bidders.\n\n"
+            "10. *Response Template*\n"
+            "- Section A: Executive Summary\n"
+            "  - Provide a high-level overview of your services and approach.\n"
+            "- Section B: Provider Network\n"
+            "  - Describe the size and coverage of your network, including geographic accessibility.\n"
+            "- Section C: Technology\n"
+            "  - Explain how your technology supports telemedicine and employee engagement. Include examples of AI-driven insights and integration with wearable devices.\n"
+            "- Section D: Pricing\n"
+            "  - Provide a detailed breakdown of your pricing model, including optional services.\n"
+            "- Section E: Case Studies\n"
+            "  - Share relevant examples of similar work with measurable outcomes. Highlight retail industry partnerships where possible.\n"
+            "- Section F: References\n"
+            "  - List at least three references with contact information. Include client testimonials if available.\n\n"
+            "11. *Appendices*\n"
+            "- Appendix A: Glossary of Terms\n"
+            "  - Define any industry-specific terms used in the RFP.\n"
+            "- Appendix B: Employee Demographics in Detail\n"
+            "  - Provide more granular details about the workforce.\n"
+            "- Appendix C: Contact Information\n"
+            "  - Designate a point of contact for questions and clarifications. Include primary and secondary contacts if necessary.\n\n"
+            "12. *Closing Statement*\n"
+            "Thank you for your interest in partnering with Trader Joe’s. We look forward to reviewing your proposal and exploring how we can collaborate to deliver exceptional healthcare services to our employees.\n\n"
+            "Warm regards,\n"
+            "John Smith\n"
+            "Director of Employee Wellness Programs\n"
+            "Trader Joe's\n"
+            "We look forward to reviewing your proposal and exploring how we can collaborate to deliver exceptional healthcare services to our employees."
+        )
+
+        client.chat_postMessage(
+            channel=channel_id,
+            text=rfp_message,
+            thread_ts=thread_ts,
+        )
+    else:
+        client.chat_postMessage(
+            channel=channel_id,
+            text=":warning: This channel is not configured for specific responses.",
+            thread_ts=thread_ts,
+        )
+def handle_message_events(message, say, client):
+    """
+    Handles incoming Slack messages and processes them using the Salesforce tool chain.
+    """
+    channel_id = message["channel"]
+    thread_ts = message["ts"]  # Use this as the thread_id
+    user_query = message.get("text", "").strip()
+
+    if not user_query:
+        client.chat_postMessage(
+            channel=channel_id,
+            text=":warning: I couldn't understand your message. Please try again.",
+            thread_ts=thread_ts,
+        )
+        return
+
     # Add reminder and examples to the query for LLM
     query = (
         f"{user_query}\n\n"
@@ -1138,29 +1345,41 @@ def handle_approve_blog_article(ack, body, client, logger):
     Thread(target=process_approval).start()
 
 @slack_app.event("file_shared")
-def handle_file_shared_event(body, logger):
+def handle_file_shared_events(body, logger):
     """
-    Handles the 'file_shared' event from Slack, extracts email information, creates a Salesforce record, and sends a message to Slack.
+    Handles file shared events from Slack and logs the event body.
     """
     try:
         # Log the entire event body for debugging
-        logger.info("Received file_shared event")
+        logger.info("Received file shared event")
         logger.info(body)
 
         # Extract relevant data from the event
         event_data = body.get("event", {})
-        files = event_data.get("files", [])
-        user_id = event_data.get("user")
-        channel_id = event_data.get("channel")
+        channel_id = event_data.get("channel_id")
 
-        # Set the claim details
-        claim_amount = "7800.00"
-        claim_status = "New"
-        claim_type = "Critical Illness"
-        date_of_claim = datetime.today().strftime('%Y-%m-%d')
-        healthcare_provider = "City General Hospital"
+        # Handle the event based on the channel ID
+        if channel_id == "C084PGEUXND":
+            handle_insurance_claim(channel_id, logger)
+        elif channel_id == "C08AK4CSTT4":
+            send_rfp_message(channel_id, logger)
+        else:
+            logger.warning(f"Unexpected channel ID: {channel_id}. No action taken.")
 
-        # Create a Salesforce record
+    except Exception as e:
+        logger.error(f"Error handling file shared event: {e}")
+
+def handle_insurance_claim(channel_id, logger):
+    """
+    Handles the insurance claim process for a specific channel.
+    """
+    claim_amount = "7800.00"
+    claim_status = "New"
+    claim_type = "Critical Illness"
+    date_of_claim = datetime.today().strftime('%Y-%m-%d')
+    healthcare_provider = "City General Hospital"
+
+    try:
         sf.Insurance_Claim__c.create({
             'Claim_Amount__c': claim_amount,
             'Claim_Status__c': claim_status,
@@ -1169,9 +1388,11 @@ def handle_file_shared_event(body, logger):
             'Healthcare_Provider__c': healthcare_provider,
             'Contact__c': '003aj00000Ek20LAAR'
         })
+    except Exception as e:
+        logger.error(f"Error creating Salesforce record: {e}")
+        return
 
-
-            # Send claim details to Slack channel with interactive buttons
+    try:
         slack_app.client.chat_postMessage(
             channel="C089BMNHYQJ",
             text=(
@@ -1182,7 +1403,7 @@ def handle_file_shared_event(body, logger):
                 f"Date of Claim: {date_of_claim}\n"
                 f"Healthcare Provider: {healthcare_provider}\n"
                 f"Priority: High :exclamation: \n"
-                f"Sentiment: Negative :red_circle: \n" 
+                f"Sentiment: Negative :red_circle: \n"
                 "Salesforce Record: "
             ),
             blocks=[
@@ -1206,7 +1427,7 @@ def handle_file_shared_event(body, logger):
                 {
                     "type": "actions",
                     "elements": [
-                         {
+                        {
                             "type": "button",
                             "text": {"type": "plain_text", "text": ":writer-icon: Analyze Claim"},
                             "action_id": "review_policy_coverage"
@@ -1217,20 +1438,92 @@ def handle_file_shared_event(body, logger):
                             "action_id": "verify_medical_records", 
                             "url": "https://writer6-dev-ed.develop.lightning.force.com/lightning/r/Insurance_Claim__c/a00aj00000cNlbSAAS/view"
                         },
-
                         {
                             "type": "button",
                             "text": {"type": "plain_text", "text": "Run Fraud Check"},
                             "action_id": "run_fraud_check"
                         },
-                       
                     ]
                 }
             ]
         )
-
     except Exception as e:
-        logger.error(f"Error handling file_shared event: {e}")
+        logger.error(f"Error sending message to Slack: {e}")
+
+def send_rfp_message(channel_id, logger):
+    """
+    Sends an RFP message to a specific channel.
+    """
+    try:
+        rfp_summary = (
+            "*RFP Summary: Employee Health Insurance Provider*\n\n"
+            "*1. Key Information*\n"
+            "- *Company:* Trader Joe's (National Grocery Chain)\n"
+            "- *Service Needed:* Comprehensive Employee Health Insurance\n" 
+            "- *Contract Duration:* Starting May 1, 2025\n"
+            "- *Bid Due Date:* February 20, 2025\n\n"
+            "*2. Employee Demographics*\n"
+            "- *Total Workforce:* 50,000 employees\n"
+            "- *Distribution:* Nationwide retail locations\n"
+            "- *Employment Types:*\n"
+            "  - Full-time staff\n"
+            "  - Part-time staff\n"
+            "  - Seasonal workers\n\n"
+            "*3. Requirements Overview*\n"
+            "- Comprehensive healthcare coverage\n"
+            "- Nationwide provider network\n"
+            "- Cost-efficient solutions\n"
+            "- Employee-centric wellness programs\n"
+            "- Innovative health technology integration\n\n"
+            "*4. Important Dates*\n"
+            "- *RFP Released:* January 27, 2025\n"
+            "- *Questions Due:* February 10, 2025\n"
+            "- *Proposal Due:* February 20, 2025\n"
+            "- *Decision By:* March 15, 2025\n"
+            "- *Service Start:* May 1, 2025\n\n"
+            "*5. Bid/No-Bid Considerations*\n"
+            "- Large national retail workforce\n"
+            "- Mix of full-time/part-time needs\n"
+            "- Focus on employee wellness\n"
+            "- Quick turnaround (1 month for proposal)\n"
+            "- Implementation by May 2025\n"
+        )
+
+        slack_app.client.chat_postMessage(
+            channel='C08AK79EXPC',
+            text="RFP Summary",
+            blocks=[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": rfp_summary
+                    }
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "View in Salesforce"},
+                            "url": "https://writer6-dev-ed.develop.lightning.force.com/lightning/r/Opportunity/006aj000008psD3AAI/view"
+                        },
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "Start Bidding Process"},
+                            "action_id": "start_bidding_process"
+                        },
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "No Bid"},
+                            "action_id": "no_bid"
+                        }
+                    ]
+                }
+            ]
+        )
+    except Exception as e:
+        logger.error(f"Error sending RFP message to Slack: {e}")
 
 @slack_app.action("review_policy_coverage")
 def handle_review_policy_coverage(ack, body, client):
@@ -1449,4 +1742,3 @@ def delete_all_messages(channel_id):
 
 # Execute the function to delete all messages in a specific channel
 #delete_all_messages("C08476AM146")
-
