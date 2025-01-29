@@ -1456,37 +1456,22 @@ def send_rfp_message(channel_id, logger):
     """
     try:
         rfp_summary = (
-            "*RFP Summary: Employee Health Insurance Provider*\n\n"
-            "*1. Key Information*\n"
-            "- *Company:* Trader Joe's (National Grocery Chain)\n"
-            "- *Service Needed:* Comprehensive Employee Health Insurance\n" 
-            "- *Contract Duration:* Starting May 1, 2025\n"
-            "- *Bid Due Date:* February 20, 2025\n\n"
-            "*2. Employee Demographics*\n"
-            "- *Total Workforce:* 50,000 employees\n"
-            "- *Distribution:* Nationwide retail locations\n"
-            "- *Employment Types:*\n"
-            "  - Full-time staff\n"
-            "  - Part-time staff\n"
-            "  - Seasonal workers\n\n"
-            "*3. Requirements Overview*\n"
-            "- Comprehensive healthcare coverage\n"
-            "- Nationwide provider network\n"
-            "- Cost-efficient solutions\n"
-            "- Employee-centric wellness programs\n"
-            "- Innovative health technology integration\n\n"
-            "*4. Important Dates*\n"
-            "- *RFP Released:* January 27, 2025\n"
-            "- *Questions Due:* February 10, 2025\n"
+            "*New RFP Received* :memo:\n\n"
+            "*Company:* Trader Joe's (National Grocery Chain)\n"
+            "*Service Needed:* Comprehensive Employee Health Insurance\n"
+            "*Contract Value:* $50M+ (Est.)\n"
+            "*Priority:* High :exclamation:\n\n"
+            "*Key Dates:*\n"
             "- *Proposal Due:* February 20, 2025\n"
-            "- *Decision By:* March 15, 2025\n"
             "- *Service Start:* May 1, 2025\n\n"
-            "*5. Bid/No-Bid Considerations*\n"
-            "- Large national retail workforce\n"
-            "- Mix of full-time/part-time needs\n"
-            "- Focus on employee wellness\n"
-            "- Quick turnaround (1 month for proposal)\n"
-            "- Implementation by May 2025\n"
+            "*Quick Facts:*\n"
+            "- 50,000 employees nationwide\n"
+            "- Mix of full/part-time staff\n"
+            "- Comprehensive coverage needed\n"
+            "- Focus on wellness programs\n\n"
+            "*Time Sensitivity:* High - 1 month for proposal\n"
+            "*Opportunity Score:* 85/100 :chart_with_upwards_trend:\n"
+            "*Salesforce Record:* <https://writer6-dev-ed.develop.lightning.force.com/lightning/r/Opportunity/006aj000008psD3AAI/view|View RFP Details>"
         )
 
         slack_app.client.chat_postMessage(
@@ -1511,11 +1496,13 @@ def send_rfp_message(channel_id, logger):
                         {
                             "type": "button",
                             "text": {"type": "plain_text", "text": "Start Bidding Process"},
+                            "url": "https://workflows-demo.onrender.com/run/#RFP%20Application",
                             "action_id": "start_bidding_process"
                         },
                         {
                             "type": "button",
-                            "text": {"type": "plain_text", "text": "No Bid"},
+                            "text": {"type": "plain_text", "text": "View Bid Analysis"},
+                            "url": "https://workflows-demo.onrender.com/run/#RFP%20Bid%20No%20Bid%20Analysis",
                             "action_id": "no_bid"
                         }
                     ]
