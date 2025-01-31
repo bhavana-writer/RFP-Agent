@@ -1,6 +1,10 @@
 {"id": "slavrou2ag9d75eg", "type": "page", "content": {"key": "RFP Bid No Bid Analysis", "pageMode": "wide"}, "handlers": {}, "isCodeManaged": false, "parentId": "root", "position": 4}
 {"id": "igc8xbbhouuj4jjt", "type": "header", "content": {"text": "RFP Analysis"}, "handlers": {}, "isCodeManaged": false, "parentId": "slavrou2ag9d75eg", "position": 0}
-{"id": "bv0ioc5i9au0bnnk", "type": "columns", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "slavrou2ag9d75eg", "position": 1}
+{"id": "dxu09sscp5eb8bze", "type": "horizontalstack", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "slavrou2ag9d75eg", "position": 1}
+{"id": "6y08j18xwihjrhng", "type": "text", "content": {"text": "### Recommendation:", "useMarkdown": "yes"}, "handlers": {}, "isCodeManaged": false, "parentId": "dxu09sscp5eb8bze", "position": 0}
+{"id": "uqqfe68epw9vdgjp", "type": "tags", "content": {"rotateHue": "yes", "seed": "3", "tags": "{\n  \"Bid\": \"Bid\"\n}"}, "handlers": {}, "isCodeManaged": false, "parentId": "dxu09sscp5eb8bze", "position": 1}
+{"id": "06570kxbc03ptm6p", "type": "button", "content": {"buttonColor": "#110404", "text": "RFP Questionaire"}, "handlers": {"wf-click": "$goToPage_RFP Application"}, "isCodeManaged": false, "parentId": "slavrou2ag9d75eg", "position": 2}
+{"id": "bv0ioc5i9au0bnnk", "type": "columns", "content": {}, "handlers": {}, "isCodeManaged": false, "parentId": "slavrou2ag9d75eg", "position": 3}
 {"id": "ikgwfgwn6y4qc5s1", "type": "column", "content": {"width": "1"}, "handlers": {}, "isCodeManaged": false, "parentId": "bv0ioc5i9au0bnnk", "position": 0}
 {"id": "ll7r3bk6dbcp5gpy", "type": "section", "content": {"title": "Key Information"}, "handlers": {}, "isCodeManaged": false, "parentId": "ikgwfgwn6y4qc5s1", "position": 0}
 {"id": "v03ohte79wlbalbl", "type": "text", "content": {"text": "- Company: **Trader Joe's (National Grocery Chain)**\n- Service Needed: Comprehensive Employee Health Insurance\n- Contract Duration: Starting May 1, 2025\n- Bid Due Date: February 20, 2025\n", "useMarkdown": "yes"}, "handlers": {}, "isCodeManaged": false, "parentId": "ll7r3bk6dbcp5gpy", "position": 0}
