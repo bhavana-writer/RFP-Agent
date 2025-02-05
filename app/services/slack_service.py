@@ -974,15 +974,15 @@ def handle_create_followup_email(ack, body, client):
                         "placeholder": {"type": "plain_text", "text": "Choose a tone"},
                         "options": [
                             {
-                                "text": {"type": "plain_text", "text": "State Street Default Voice"},
+                                "text": {"type": "plain_text", "text": "Company Default Voice"},
                                 "value": "formal",
                             },
                             {
-                                "text": {"type": "plain_text", "text": "Aman's Voice"},
+                                "text": {"type": "plain_text", "text": "CEO Voice"},
                                 "value": "casual",
                             },
                             {
-                                "text": {"type": "plain_text", "text": "State Street Alpha Default Voice"},
+                                "text": {"type": "plain_text", "text": "Customer Service Voice"},
                                 "value": "professional",
                             },
                         ],
