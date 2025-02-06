@@ -19,7 +19,8 @@ class JSONToString(WorkflowBlock):
                         "name": "JSON input",
                         "type": "Text",
                         "control": "Textarea",
-                        "desc": "The JSON object to convert to a string."
+                        "desc": "The JSON object to convert to a string.",
+                        "required": True
                     },
                 },
                 "outs": {
@@ -38,8 +39,9 @@ class JSONToString(WorkflowBlock):
         ))
 
     def run(self):
+        print("JSONToString.run()")
         try:
-            json_input = self._get_field("jsonInput", as_json=True)
+            json_input = self._get_field("jsonInput", as_json=True, required=True)
             string_output = json.dumps(json_input)
             self.result = string_output
             self.outcome = "success"

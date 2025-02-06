@@ -974,7 +974,7 @@ def handle_create_followup_email(ack, body, client):
                         "placeholder": {"type": "plain_text", "text": "Choose a tone"},
                         "options": [
                             {
-                                "text": {"type": "plain_text", "text": "Prudential Voice"},
+                                "text": {"type": "plain_text", "text": "Company Voice"},
                                 "value": "formal",
                             },
                             {
