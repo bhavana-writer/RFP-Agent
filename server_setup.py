@@ -2,7 +2,7 @@ import sys
 import os
 from fastapi import FastAPI, Request
 import writer.serve
-from app.config import settings
+# from app.config import settings
 import logging
 from dotenv import load_dotenv
 from string_block import JSONToString
@@ -28,7 +28,7 @@ GongIntegration.register("workflows_gongintegration")
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(PROJECT_ROOT)
 
-print(settings.dict())  # Print loaded settings
+# print(settings.dict())  # Print loaded settings
 
 
 # Import API router after adding the root directory to sys.path
@@ -46,13 +46,13 @@ async def health_check():
     return {"status": "ok"}
 
 # Initialize Base URL during startup
-@asgi_app.middleware("http")
-async def set_base_url_on_request(request: Request, call_next):
-    """
-    Middleware to set the base URL dynamically on every incoming request.
-    """
-    if not settings.BASE_URL:
-        base_url = str(request.url).split(request.url.path)[0]
-        settings.BASE_URL = base_url
-    response = await call_next(request)
-    return response
+# @asgi_app.middleware("http")
+# async def set_base_url_on_request(request: Request, call_next):
+#     """
+#     Middleware to set the base URL dynamically on every incoming request.
+#     """
+#     if not settings.BASE_URL:
+#         base_url = str(request.url).split(request.url.path)[0]
+#         settings.BASE_URL = base_url
+#     response = await call_next(request)
+#     return response
