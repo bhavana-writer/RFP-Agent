@@ -5,8 +5,8 @@ import writer.serve
 # from app.config import settings
 import logging
 from dotenv import load_dotenv
-from string_block import JSONToString
-from gong_block import GongIntegration
+# from string_block import JSONToString
+# from gong_block import GongIntegration
 
 
 
@@ -20,8 +20,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-JSONToString.register("workflows_jsontostring")
-GongIntegration.register("workflows_gongintegration")
+# JSONToString.register("workflows_jsontostring")
+# GongIntegration.register("workflows_gongintegration")
 
 
 # Add the project root directory to sys.path
