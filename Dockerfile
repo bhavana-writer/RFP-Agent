@@ -3,9 +3,9 @@ FROM python:3.12-slim
 # Set the working directory
 WORKDIR /app
 # Copy requirements first to leverage Docker cache
-COPY requirements2.txt .
+COPY requirements.txt .
 # Install dependencies
-RUN pip install -r requirements2.txt && \
+RUN pip install -r requirements.txt && \
     pip install writer==0.8.3rc10
 # Copy application files
 COPY . .

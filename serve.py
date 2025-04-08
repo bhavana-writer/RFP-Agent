@@ -7,21 +7,20 @@ import os
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi import Depends, HTTPException, status
 import secrets
-
-
+import logging
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 security = HTTPBasic()
-
 # Environment-based credentials
 USERNAME = os.getenv("LOGIN", "admin")
 PASSWORD = os.getenv("PASSWORD", "password")
-
 def authenticate(credentials: HTTPBasicCredentials = Depends(security)):
     """
     Validates the provided username and password.
     """
     is_valid_username = secrets.compare_digest(credentials.username, USERNAME)
     is_valid_password = secrets.compare_digest(credentials.password, PASSWORD)
-
     if not (is_valid_username and is_valid_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -29,50 +28,51 @@ def authenticate(credentials: HTTPBasicCredentials = Depends(security)):
             headers={"WWW-Authenticate": "Basic"},
         )
     return credentials.username
-
-
-
 # Function to dynamically locate the writer static components directory
 def get_writer_static_path():
-    # Locate the writer package
-    writer_spec = importlib.util.find_spec("writer")
-    if not writer_spec or not writer_spec.submodule_search_locations:
-        raise RuntimeError("Unable to locate the 'writer' package. Make sure it is installed.")
-    
-    # Resolve the static components directory
-    writer_package_path = writer_spec.submodule_search_locations[0]
-    static_components_path = os.path.join(writer_package_path, "static", "components")
-    
-    # Verify the directory exists
-    if not os.path.isdir(static_components_path):
-        raise RuntimeError(f"'components' directory not found in {static_components_path}")
-    
-    return static_components_path
-
+    try:
+        # Locate the writer package
+        writer_spec = importlib.util.find_spec("writer")
+        if not writer_spec or not writer_spec.submodule_search_locations:
+            raise RuntimeError("Unable to locate the 'writer' package. Make sure it is installed.")
+        # Resolve the static components directory
+        writer_package_path = writer_spec.submodule_search_locations[0]
+        static_components_path = os.path.join(writer_package_path, "static", "components")
+        # Verify the directory exists
+        if not os.path.isdir(static_components_path):
+            raise RuntimeError(f"'components' directory not found in {static_components_path}")
+        return static_components_path
+    except Exception as e:
+        logger.error(f"Error locating writer static path: {str(e)}")
+        raise
+# Ensure .wf directory exists
+os.makedirs(".wf", exist_ok=True)
 # Root ASGI app to serve as the hub
 app_hub = FastAPI(lifespan=writer.serve.lifespan)
-
-# Create two ASGI apps for the same app_path but with different modes
-run_app = writer.serve.get_asgi_app(".", "run")
-edit_app = writer.serve.get_asgi_app(".", "edit", enable_remote_edit=True, enable_server_setup=True)
-
-# Mount the apps on different sub-paths
-app_hub.mount("/run", run_app)
-app_hub.mount("/edit", edit_app)
-app_hub.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-# Dynamically locate and mount the Writer static components directory
 try:
+    # Create two ASGI apps for the same app_path but with different modes
+    run_app = writer.serve.get_asgi_app(".", "run")
+    edit_app = writer.serve.get_asgi_app(".", "edit",
+                                       enable_remote_edit=True,
+                                       enable_server_setup=True)
+    # Mount the apps on different sub-paths
+    app_hub.mount("/run", run_app)
+    app_hub.mount("/edit", edit_app)
+    # Mount static files if directory exists
+    if os.path.exists("static"):
+        app_hub.mount("/static", StaticFiles(directory="static"), name="static")
+    else:
+        logger.warning("Static directory not found, skipping static files mount")
+    # Dynamically locate and mount the Writer static components directory
     components_path = get_writer_static_path()
     app_hub.mount(
         "/components",
         StaticFiles(directory=components_path),
         name="components"
     )
-except RuntimeError as e:
-    print(f"Error: {e}")
-
+except Exception as e:
+    logger.error(f"Error during app setup: {str(e)}")
+    raise
 # Root path for navigation
 @app_hub.get("/", dependencies=[Depends(authenticate)])
 async def home_page():
@@ -168,17 +168,20 @@ async def home_page():
     </body>
     </html>
     """, media_type="text/html")
-
 # Start the Uvicorn server
 if __name__ == "__main__":
-    # Dynamically select port based on environment
-    port = int(os.getenv("PORT", 8080))
-    host = os.getenv("HOST", "0.0.0.0")  # Use "localhost" for local development if needed
-    
-    uvicorn.run(
-        app_hub,
-        host=host,
-        port=port,
-        log_level="warning",
-        ws_max_size=writer.serve.MAX_WEBSOCKET_MESSAGE_SIZE
-    )
+    try:
+        # Dynamically select port based on environment
+        port = int(os.getenv("PORT", 8080))
+        host = os.getenv("HOST", "0.0.0.0")
+        logger.info(f"Starting server on {host}:{port}")
+        uvicorn.run(
+            app_hub,
+            host=host,
+            port=port,
+            log_level="info",
+            ws_max_size=writer.serve.MAX_WEBSOCKET_MESSAGE_SIZE
+        )
+    except Exception as e:
+        logger.error(f"Failed to start server: {str(e)}")
+        raise
