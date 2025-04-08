@@ -1,0 +1,1 @@
+function a(n){return n.map(t=>`${t.componentId}:${t.instanceNumber}`).join(",")}function s(n){return n?n.split(",").map(t=>{const[e,r]=t.split(":");return{componentId:e,instanceNumber:Number(r)}}):[]}export{a as f,s as p};
