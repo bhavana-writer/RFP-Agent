@@ -50,7 +50,7 @@ wf.Config.feature_flags = ["workflows", "custom_block_icons", "dataframeEditor"]
 rfp_df = pd.DataFrame([
     {
         'Index': 0,
-        'Question': 'Please briefly describe your firm's investment philosophy. How has it changed since the inception of this product?',
+        'Question': 'Please briefly describe your firms investment philosophy. How has it changed since the inception of this product?',
         'Answer': '',
         'Notes': '',
         'Approved': False
@@ -89,14 +89,14 @@ rfp_df = pd.DataFrame([
 rfp_df_answered = pd.DataFrame([
     {
         'Index': 0,
-        'Question': 'Please briefly describe your firm's investment philosophy. How has it changed since the inception of this product?',
+        'Question': 'Please briefly describe your firms investment philosophy. How has it changed since the inception of this product?',
         'Answer': 'Our investment philosophy focuses on long-term value creation through active management, emphasizing fundamental research, global diversification, and risk-adjusted returns. Since inception, weve integrated quantitative models and ESG factors to complement our traditional approaches.',
         'Notes': 'Sources: Franklin Templeton Global Investment Committee Reports, Quarterly Market Outlooks from the Franklin Templeton Institute, Insights from Our Proprietary Quantitative Research Team',
         'Approved': False
     },
     {
         'Index': 1,
-        'Question': 'Please discuss your firm's investment strategy, screening processes, and portfolio construction methodology.',
+        'Question': 'Please discuss your firms investment strategy, screening processes, and portfolio construction methodology.',
         'Answer': 'We adopt a bottom-up, research-driven strategy supported by quantitative screening and macroeconomic analysis. Portfolios are constructed with a focus on diversification and risk management, incorporating sector, geographic, and asset class considerations. ',
         'Notes': 'Sources: Franklin Templeton Global Investment Committee Reports, Internal Sector Research from Our Global Analyst Network, Data from Proprietary Quantitative Screening Tools',
         'Approved': False
